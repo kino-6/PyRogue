@@ -16,21 +16,40 @@ class InputHandler:
         self.dx, self.dy = 0, 0
 
         if keys[pygame.K_KP8]:
-            self.dy = -1
+            self.dy = -self.movement_speed
         if keys[pygame.K_KP2]:
-            self.dy = 1
+            self.dy = self.movement_speed
         if keys[pygame.K_KP4]:
-            self.dx = -1
+            self.dx = -self.movement_speed
         if keys[pygame.K_KP6]:
-            self.dx = 1
+            self.dx = self.movement_speed
         if keys[pygame.K_KP7]:
-            self.dx, self.dy = -1, -1
+            self.dx, self.dy = -self.movement_speed, -self.movement_speed
         if keys[pygame.K_KP9]:
-            self.dx, self.dy = 1, -1
+            self.dx, self.dy = self.movement_speed, -self.movement_speed
         if keys[pygame.K_KP1]:
-            self.dx, self.dy = -1, 1
+            self.dx, self.dy = -self.movement_speed, self.movement_speed
         if keys[pygame.K_KP3]:
-            self.dx, self.dy = 1, 1
+            self.dx, self.dy = self.movement_speed, self.movement_speed
+
+        if keys[pygame.K_LEFT] or keys[pygame.K_h]:
+            self.dx = -self.movement_speed
+        if keys[pygame.K_RIGHT] or keys[pygame.K_l]:
+            self.dx = self.movement_speed
+        if keys[pygame.K_UP] or keys[pygame.K_k]:
+            self.dy = -self.movement_speed
+        if keys[pygame.K_DOWN] or keys[pygame.K_j]:
+            self.dy = self.movement_speed
+
+        # Rogueのキー入力による移動
+        if keys[pygame.K_y]:
+            self.dx, self.dy = -self.movement_speed, -self.movement_speed
+        if keys[pygame.K_u]:
+            self.dx, self.dy = self.movement_speed, -self.movement_speed
+        if keys[pygame.K_b]:
+            self.dx, self.dy = -self.movement_speed, self.movement_speed
+        if keys[pygame.K_n]:
+            self.dx, self.dy = self.movement_speed, self.movement_speed
 
         if keys[pygame.K_PERIOD] or keys[pygame.K_GREATER]:
             self.action = ("descend_stairs", player_pos[0], player_pos[1])

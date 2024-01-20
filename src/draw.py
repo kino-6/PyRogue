@@ -21,7 +21,7 @@ class Draw:
             for x in range(len(self.game_map.tiles[y])):
                 if self.game_map.explored[y][x]:
                     tile_char = self.game_map.get_tile(x, y)
-                    tile_text = self.game_map_font.render(tile_char, True, (255, 255, 255))
+                    tile_text = self.game_map_font.render(tile_char, True, "gray")
                     self.screen.blit(tile_text, (x * const.GRID_SIZE, y * const.GRID_SIZE))
 
     def draw_entity(self, entities_list):
