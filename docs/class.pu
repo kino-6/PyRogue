@@ -1,0 +1,417 @@
+@startuml Game
+
+class Game {
+    +entities: List[Entity]
+    +events: List[Event]
+    +gameMap: GameMap
+    +add_entity(entity: Entity)
+    +remove_entity(entity: Entity)
+    +update()
+    +draw(screen: Screen)
+    +handle_event(event: Event)
+    +eventProcessor: EventProcessor
+}
+
+class GameMap {
+    +tiles: List[List[Tile]]
+    +width: int
+    +height: int
+    +generate_map()
+    +get_tile(x: int, y: int): Tile
+    +is_walkable(x: int, y: int): boolean
+    +draw(screen: Screen)
+    +traps: List[Trap]
+    +getTrapAtPosition(position: Position): Trap
+    +itemsOnFloor: Map<Position, Item>
+    +addItemOnFloor(item: Item, position: Position)
+    +removeItemOnFloor(item: Item, position: Position)
+}
+
+class LogWindow {
+    +draw(screen: Screen)
+}
+
+class StatusWindow {
+    +draw(screen: Screen)
+}
+
+class InventoryWindow {
+    +draw(screen: Screen)
+}
+
+class Draw {
+    +draw_entities(entities: List[Entity], screen: Screen)
+    +draw_map(gameMap: GameMap, screen: Screen)
+    +draw_entities(entities: List[Entity], screen: Screen)
+    +draw_log_window(logWindow: LogWindow, screen: Screen)
+    +draw_status_window(statusWindow: StatusWindow, screen: Screen)
+    +draw_inventory_window(inventoryWindow: InventoryWindow, screen: Screen)
+}
+Draw ..> GameMap : draws >
+Draw ..> LogWindow : draws >
+Draw ..> StatusWindow : draws >
+Draw ..> InventoryWindow : draws >
+
+class AssetManager {
+    +loadEntityData(filename: String): List[Entity]
+    +loadPlayerData(filename: String): Player
+    +loadEnemyData(filename: String): List[Enemy]
+    +loadItemData(filename: String): List[Item]
+}
+
+class PlayerYAML {
+    +char: "@"
+    +name: "Player"
+    +max_hp: 15
+    +strength: 8
+    +exp: 0
+    +level: 1
+    +armor: 0
+    +ai: "player"
+    +inventory: [some food, ring mail, mace, short bow, arrows] : init inventory
+}
+
+class EnemyYAML {
+    +char: "H"
+    +name: "hobgoblin"
+    +max_hp: 15
+    +strength: 8
+    +exp: 0
+    +level: 1
+    +armor: 0
+    +ai: "chase"
+    +inventory: [] : drop item
+}
+
+class ItemYAML {
+    +char: ":" : each item char (ex. : is food)
+    +name: "item name"
+    +use: "eat"
+}
+
+AssetManager ..> PlayerYAML : reads >
+AssetManager ..> EnemyYAML : reads >
+AssetManager ..> ItemYAML : reads >
+
+class Entity {
+    - attributes: Dictionary : x, y, char, ...
+    + setAttribute(key: String, value: Any)
+    + getAttribute(key: String): Any
+    +update(game: Game)
+    +draw(screen: Screen)
+    +trigger_event()
+}
+
+class Player extends Entity {
+    + perform_action(game: Game): Event
+    + inventory: List[Item]
+    + use_item(item: Item)
+    + currentState: PlayerState
+    + change_state(newState: PlayerState)
+    + equip_item(item: Item)
+    + unequip_item(item: Item)
+    + get_inventory_list(): List[Item]
+    + pickUpGold(amount: int)
+    + pickUpItem(item: Item)
+    + isInventoryFull(): boolean
+    + move(dx: int, dy: int)
+    + useWand(wand: Wand, direction: Direction)
+    + rest()
+    + showInventory()
+    + quaffPotion(potion: Potion)
+    + moveToLevel(level: Level)
+    + is_obtained_Yendor()
+    + readScroll(scroll: Scroll)
+    + foodLevel: int
+    + hungryState: HungryState
+    + eatFood(food: Food)
+    + updateHungryState()
+    + position: Position
+    + identifyTrap(direction: Direction)
+    + equippedWeapon: Weapon
+    + wieldWeapon(weapon: Weapon)
+    + equippedArmor: Armor
+    + equippedRings: List[Ring]
+    + wearArmor(armor: Armor)
+    + takeOffArmor()
+    + putOnRing(ring: Ring, hand: Hand)
+    + removeRing(ring: Ring)
+    + updateStats()
+    + dropItem(item: Item)
+    + callItem(item: IdentifiableItem, name: String)
+}
+
+class Enemy extends Entity {
+    +perform_action(game: Game): Event
+    +ai_behavior: String
+    +drop_item(): Item
+    + change_state(newState: EnemyState)
+}
+
+class PlayerState {
+    + enter(player: Player)
+    + execute(player: Player)
+    + exit(player: Player)
+}
+
+class EnemyState {
+    + enter(enemy: Enemy)
+    + execute(enemy: Enemy)
+    + exit(enemy: Enemy)
+}
+
+class AIBehavior {
+    + execute(enemy: Enemy)
+}
+
+class Item extends Entity {
+    - isEquipped: boolean
+    - isIdentified: boolean
+    - unidentifiedName: String
+    + identifiedName: String
+    + useEffect: String
+    + description: String
+    + isCursed: boolean
+    + use(player: Player)
+    + equip()
+    + unequip()
+    + getName(): String
+    + identify()
+}
+
+class Gold extends Entity {
+    +amount: int
+}
+
+class Weapon extends Item {
+    +attackPower: int
+    +use(player: Player)
+}
+
+class Armor extends Item {
+    +defensePower: int
+    +use(player: Player)
+}
+
+class Potion extends Item {
+    +effect: String
+    +use(player: Player)
+}
+
+class Scroll extends Item {
+    +effect: String
+    +use(player: Player)
+}
+
+class Ring extends Item {
+    +effect: String
+    +use(player: Player)
+}
+
+class Staff extends Item {
+    +effect: String
+    +use(player: Player)
+}
+
+class Food extends Item {
+    +nutrition: int
+    +use(player: Player)
+}
+
+enum HungryState {
+    FULL
+    HUNGRY
+    WEAK
+    FAINTING
+}
+HungryState -> Player
+
+enum Hand {
+    LEFT
+    RIGHT
+}
+
+
+class Event {
+    +type: String
+    +source: Entity
+    +target: Entity
+    +execute(game: Game)
+}
+
+class EventProcessor {
+    +processEvent(event: Event, game: Game)
+}
+Game "1" o-- "1" EventProcessor : has >
+EventProcessor "1" o-- "*" Event : processes >
+
+class DropItemEvent extends Event {
+    +item: Item
+    +execute(game: Game)
+}
+
+class CallItemEvent extends Event {
+    +item: IdentifiableItem
+    +name: String
+    +execute(game: Game)
+}
+
+class IdentifiableItem extends Item {
+    +identifiedName: String
+    +isIdentified: boolean
+    +identify()
+    +use(player: Player)
+}
+
+class Potion extends IdentifiableItem {
+    +use(player: Player)
+}
+
+class Scroll extends IdentifiableItem {
+    +use(player: Player)
+}
+
+class ThrowEvent extends Event {
+    +direction: Direction
+    +execute(game: Game)
+}
+
+class ZapStaffEvent extends Event {
+    +staff: Staff
+    +direction: Direction
+    +execute(game: Game)
+}
+
+enum Direction {
+    +NORTH
+    +SOUTH
+    +EAST
+    +WEST
+    +NORTHEAST
+    +NORTHWEST
+    +SOUTHEAST
+    +SOUTHWEST
+    +UP
+    +DOWN
+}
+ZapStaffEvent -> Direction
+
+class InventoryEvent extends Event {
+    +execute(game: Game)
+}
+
+class QuaffPotionEvent extends Event {
+    +potion: Potion
+    +execute(game: Game)
+}
+
+class ReadScrollEvent extends Event {
+    +scroll: Scroll
+    +execute(game: Game)
+}
+
+class IdentifyTrapEvent extends Event {
+    +direction: Direction
+    +execute(game: Game)
+}
+
+class WieldWeaponEvent extends Event {
+    +weapon: Weapon
+    +execute(game: Game)
+}
+
+class WearArmorEvent extends Event {
+    +armor: Armor
+    +execute(game: Game)
+}
+
+class TakeOffArmorEvent extends Event {
+    +execute(game: Game)
+}
+
+class PutOnRingEvent extends Event {
+    +ring: Ring
+    +hand: Hand
+    +execute(game: Game)
+}
+
+class RemoveRingEvent extends Event {
+    +ring: Ring
+    +execute(game: Game)
+}
+
+class MoveEvent extends Event{
+    +execute(game: Game)
+}
+
+class CombatEvent extends Event{
+    +execute(game: Game)
+}
+
+class ItemCollectionEvent extends Event{
+    +execute(game: Game)
+}
+
+class TrapEvent extends Event {
+    +execute(game: Game)
+}
+
+class StaircaseEvent extends Event {
+    +execute(game: Game)
+}
+
+class RestEvent extends Event {
+    +execute(game: Game)
+}
+
+class ClimbDownEvent extends Event {
+    +execute(game: Game)
+}
+
+class ClimbUpEvent extends Event {
+    +execute(game: Game)
+}
+
+class Position {
+    +x: int
+    +y: int
+}
+Position -> Level
+class Level {
+    +stairsDown: Position
+    +stairsUp: Position
+}
+
+class Trap extends Entity {
+    +effect: Effect
+    +position: Position
+    +type: String
+    +trigger(player: Player)
+}
+
+class Staircase extends Entity {
+    +destination: Level
+    +use(player: Player)
+}
+Level -> Staircase
+
+class InputHandler extends Entity {
+    +handle_input(): Event
+}
+
+Game "1" o-- "1" AssetManager : uses >
+AssetManager ..> Entity : creates >
+Game "1" o-- "1" GameMap : has >
+Game "1" o-- "1" Draw : has >
+InputHandler ..> MoveEvent : generates >
+Game "1" o-- "*" Entity : contains >
+Game "1" o-- "*" Event : handles >
+Draw ..> Entity : draws >
+Draw ..> GameMap : draws >
+
+Player "1" o-- "1" PlayerState : has >
+Player "1" o-- "*" Item : has >
+Enemy "1" o-- "1" EnemyState : has >
+Enemy "1" o-- "1" AIBehavior : has >
+
+@enduml

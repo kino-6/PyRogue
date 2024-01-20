@@ -1,0 +1,8 @@
+char: "C"
+name: "centaur"
+strength: 10
+exp: 17
+level: 4
+armor: 4
+max_hp: 32
+color: "white"

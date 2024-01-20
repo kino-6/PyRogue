@@ -1,0 +1,8 @@
+char: "D"
+name: "dragon"
+strength: 10
+exp: 5000
+level: 10
+armor: -1
+max_hp: 80
+color: "white"

@@ -1,0 +1,8 @@
+char: "W"
+name: "wraith"
+strength: 10
+exp: 55
+level: 5
+armor: 4
+max_hp: 40
+color: "white"

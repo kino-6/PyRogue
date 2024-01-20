@@ -1,0 +1,8 @@
+char: "V"
+name: "vampire"
+strength: 10
+exp: 350
+level: 8
+armor: 1
+max_hp: 64
+color: "white"

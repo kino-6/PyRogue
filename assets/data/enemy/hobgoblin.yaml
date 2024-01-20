@@ -1,0 +1,8 @@
+char: "H"
+name: "hobgoblin"
+strength: 10
+exp: 3
+level: 1
+armor: 5
+max_hp: 8
+color: "white"

@@ -1,0 +1,8 @@
+char: "L"
+name: "leprechaun"
+strength: 10
+exp: 10
+level: 3
+armor: 8
+max_hp: 24
+color: "white"

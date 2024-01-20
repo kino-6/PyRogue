@@ -1,0 +1,8 @@
+char: "B"
+name: "bat"
+strength: 10
+exp: 1
+level: 1
+armor: 1
+max_hp: 8
+color: "white"

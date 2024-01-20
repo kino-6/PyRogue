@@ -1,0 +1,1 @@
+black ./src --line-length 120

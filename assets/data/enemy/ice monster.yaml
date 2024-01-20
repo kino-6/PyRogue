@@ -1,0 +1,8 @@
+char: "I"
+name: "ice monster"
+strength: 10
+exp: 5
+level: 1
+armor: 9
+max_hp: 8
+color: "white"

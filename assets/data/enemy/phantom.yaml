@@ -1,0 +1,8 @@
+char: "P"
+name: "phantom"
+strength: 10
+exp: 120
+level: 8
+armor: 3
+max_hp: 64
+color: "white"

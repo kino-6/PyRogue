@@ -1,0 +1,8 @@
+char: "T"
+name: "troll"
+strength: 10
+exp: 120
+level: 6
+armor: 4
+max_hp: 48
+color: "white"
