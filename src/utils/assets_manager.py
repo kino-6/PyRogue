@@ -3,6 +3,7 @@ import glob
 import yaml
 from pathlib import Path
 import pygame
+from typing import List
 
 
 class AssetsManager:
@@ -31,3 +32,17 @@ class AssetsManager:
 
     def get_item_path(self, data_name) -> Path:
         return self.base_path / "assets" / "data" / "item" / data_name
+
+    def get_item_data_list(self, data_name) -> List:
+        directory = self.get_item_path(data_name)
+        # print(f"directory = {directory}")
+        file_paths = list(directory.glob("*.yaml"))
+        # print(f"file_paths = {file_paths}")
+
+        data_list = []
+        for file_path in file_paths:
+            with open(file_path, "r") as file:
+                data = yaml.safe_load(file)
+                data_list.append(data)
+        # print(f"len(data_list) = {len(data_list)}")
+        return data_list

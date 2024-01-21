@@ -1,0 +1,9 @@
+name: "LongSword"
+char: ")"
+color: "white"
+undefined_name: "Unknown weapon"
+wielded_dice: "3d4"
+throw_dice: "1d2"
+use_effect: None
+dmg_bonus: 1
+hit_bonus: 1

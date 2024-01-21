@@ -1,8 +1,9 @@
 char: "@"
 name: "Player"
 max_hp: 15
-strength: 99
+strength: 12
 exp: 0
 level: 1
+exp_level: 1
 armor: 0
 color: "white"

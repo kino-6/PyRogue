@@ -16,6 +16,10 @@ class Character(Entity):
         self.turn = 0
         self.turns_since_last_recovery = 0
         self.inventory = Inventory()
+        self.equipped_weapon = None
+        self.equipped_armor = None
+        self.equipped_right_ring = None
+        self.equipped_left_ring = None
 
     def get_looped_element(self, idx, looped_list):
         looped_idx = idx % len(looped_list)

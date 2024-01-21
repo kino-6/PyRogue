@@ -3,6 +3,7 @@ name: "orc"
 strength: 10
 exp: 5
 level: 1
+exp_level: 1
 armor: 6
 max_hp: 8
 color: "white"

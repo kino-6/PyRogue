@@ -3,6 +3,7 @@ name: "yeti"
 strength: 10
 exp: 50
 level: 4
+exp_level: 4
 armor: 6
 max_hp: 32
 color: "white"

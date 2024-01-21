@@ -15,48 +15,37 @@ class InputHandler:
         keys = pygame.key.get_pressed()
         self.dx, self.dy = 0, 0
 
-        if keys[pygame.K_KP8]:
-            self.dy = -self.movement_speed
-        if keys[pygame.K_KP2]:
-            self.dy = self.movement_speed
-        if keys[pygame.K_KP4]:
-            self.dx = -self.movement_speed
-        if keys[pygame.K_KP6]:
-            self.dx = self.movement_speed
-        if keys[pygame.K_KP7]:
+        # 水平方向の移動
+        if keys[pygame.K_LEFT] or keys[pygame.K_h] or keys[pygame.K_KP4]:
+            self.dx -= self.movement_speed
+        if keys[pygame.K_RIGHT] or keys[pygame.K_l] or keys[pygame.K_KP6]:
+            self.dx += self.movement_speed
+
+        # 垂直方向の移動
+        if keys[pygame.K_UP] or keys[pygame.K_k] or keys[pygame.K_KP8]:
+            self.dy -= self.movement_speed
+        if keys[pygame.K_DOWN] or keys[pygame.K_j] or keys[pygame.K_KP2]:
+            self.dy += self.movement_speed
+
+        # 斜め方向の移動
+        if keys[pygame.K_KP7] or keys[pygame.K_y]:
             self.dx, self.dy = -self.movement_speed, -self.movement_speed
-        if keys[pygame.K_KP9]:
+        if keys[pygame.K_KP9] or keys[pygame.K_u]:
             self.dx, self.dy = self.movement_speed, -self.movement_speed
-        if keys[pygame.K_KP1]:
+        if keys[pygame.K_KP1] or keys[pygame.K_b]:
             self.dx, self.dy = -self.movement_speed, self.movement_speed
-        if keys[pygame.K_KP3]:
+        if keys[pygame.K_KP3] or keys[pygame.K_n]:
             self.dx, self.dy = self.movement_speed, self.movement_speed
 
-        if keys[pygame.K_LEFT] or keys[pygame.K_h]:
-            self.dx = -self.movement_speed
-        if keys[pygame.K_RIGHT] or keys[pygame.K_l]:
-            self.dx = self.movement_speed
-        if keys[pygame.K_UP] or keys[pygame.K_k]:
-            self.dy = -self.movement_speed
-        if keys[pygame.K_DOWN] or keys[pygame.K_j]:
-            self.dy = self.movement_speed
-
-        # Rogueのキー入力による移動
-        if keys[pygame.K_y]:
-            self.dx, self.dy = -self.movement_speed, -self.movement_speed
-        if keys[pygame.K_u]:
-            self.dx, self.dy = self.movement_speed, -self.movement_speed
-        if keys[pygame.K_b]:
-            self.dx, self.dy = -self.movement_speed, self.movement_speed
-        if keys[pygame.K_n]:
-            self.dx, self.dy = self.movement_speed, self.movement_speed
-
+        # actions
         if keys[pygame.K_PERIOD] or keys[pygame.K_GREATER]:
             self.action = ("descend_stairs", player_pos[0], player_pos[1])
         elif keys[pygame.K_KP5]:
             self.action = ("rest", player_pos[0], player_pos[1])
         elif keys[pygame.K_e]:
             self.action = ("eat_food", player_pos[0], player_pos[1])
+        elif keys[pygame.K_w]:
+            self.action = ("wield_a_weapon", player_pos[0], player_pos[1])
         else:
             # 移動先の座標を計算
             new_x = player_pos[0] + self.dx

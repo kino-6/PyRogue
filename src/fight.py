@@ -1,6 +1,9 @@
 from character import Character
+from weapon import Weapon
 from enemy import Enemy
 from game import Game
+from weapon import Weapon
+import random
 
 
 class Fight:
@@ -10,12 +13,11 @@ class Fight:
         self.game = game
         self.logger = logger
 
-    def attack(self, attacker: Character, defender: Character):
+    def attack(self, attacker: Character, defender: Character, is_throw=False):
         # 攻撃の成功を判定
-        hit = self.calculate_hit_chance(attacker, defender)
+        did_hit, damage = self.roll_em(attacker, defender, is_throw=False)
 
-        if hit:
-            damage = self.calculate_damage(attacker, defender)
+        if did_hit:
             is_killed = defender.take_damage(damage)
             self.logger.info(f"{attacker.status.name} attacks {defender.status.name} for {damage} damage.")
 
@@ -28,6 +30,57 @@ class Fight:
         else:
             self.handle_miss(attacker, defender)
             return False
+
+    def roll_em(self, attacker: Character, defender: Character, is_throw=False):
+        weapon = attacker.equipped_weapon
+        base_dmg = attacker.status.strength
+        attacker_level = attacker.status.exp_level
+        def_armor = defender.status.armor
+
+        # 武器とボーナスの設定
+        if weapon is None:
+            # 素手
+            hit_bonus = 0
+            dmg_bonus = 0
+            attack_damage = "0d0"
+        else:
+            hit_bonus = weapon.hit_bonus
+            dmg_bonus = weapon.dmg_bonus
+            # ex. 1d3+1d3
+            attack_damage = weapon.wielded_dice if not hurl else weapon.throw_dice
+
+        # リングの効果（仮の処理）
+        # ここにリングによる攻撃力やダメージのボーナスを適用するコードを追加
+
+        # 防具やリングによる防御力のボーナスを適用するコードを追加
+
+        # 攻撃処理
+        did_hit = False
+        damage = 0
+
+        # ダメージ計算のループ
+        for dmg in attack_damage.split("+"):
+            ndice, nsides = map(int, dmg.split("d"))
+            if self.swing(attacker_level, def_armor, hit_bonus):
+                roll_result = self.roll_dice(ndice, nsides)
+
+                max_damage = int(base_dmg / 2) + roll_result + dmg_bonus
+                rnd_damage = int(max_damage / 16) + 1
+                max_damage += random.randint(-rnd_damage, rnd_damage)
+
+                damage = max(0, max_damage)
+                did_hit = True
+
+        return did_hit, damage
+
+    def swing(self, attacker_level, defender_armor, hit_bonus):
+        res = random.randint(1, 20)
+        need = (20 - attacker_level) - defender_armor
+        return res + hit_bonus >= need
+
+    def roll_dice(self, ndice, nsides):
+        # ndice: ダイスの数, nsides: ダイスの面の数
+        return sum(random.randint(1, nsides) for _ in range(ndice))
 
     def calculate_hit_chance(self, attacker: Character, defender: Character):
         # 基本命中率: 攻撃者の攻撃力と防御者の防御力を考慮
@@ -60,8 +113,8 @@ class Fight:
 
     def handle_hit(self, defender: Character):
         # 攻撃がヒットしたが、敵が死亡しなかった場合の処理
-        print(f"{defender.status.name} is hit!")
+        self.logger.info(f"{defender.status.name} is hit!")
 
     def handle_miss(self, attacker, defender):
         # 攻撃がミスした場合の処理
-        print(f"{attacker.status.name} missed {defender.status.name}!")
+        self.logger.info(f"{attacker.status.name} missed {defender.status.name}!")

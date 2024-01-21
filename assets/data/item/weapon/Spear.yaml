@@ -1,0 +1,9 @@
+name: "Spear"
+char: ")"
+color: "white"
+undefined_name: "Unknown weapon"
+wielded_dice: "2d3"
+throw_dice: "1d6"
+use_effect: None
+dmg_bonus: 1
+hit_bonus: 0

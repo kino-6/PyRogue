@@ -6,6 +6,7 @@ from character import Character
 import utils.constants as const
 from utils.assets_manager import AssetsManager
 
+
 class Food(Item):
     def __init__(self, x=0, y=0):
         self.load_data()

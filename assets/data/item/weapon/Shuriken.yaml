@@ -1,0 +1,9 @@
+name: "Shuriken"
+char: ")"
+color: "white"
+undefined_name: "Unknown weapon"
+wielded_dice: "1d2"
+throw_dice: "2d4"
+use_effect: None
+dmg_bonus: 0
+hit_bonus: 3

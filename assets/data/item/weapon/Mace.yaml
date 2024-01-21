@@ -1,0 +1,9 @@
+name: "Mace"
+char: ")"
+color: "white"
+undefined_name: "Unknown weapon"
+wielded_dice: "2d4"
+throw_dice: "1d3"
+use_effect: None
+dmg_bonus: 0
+hit_bonus: 0

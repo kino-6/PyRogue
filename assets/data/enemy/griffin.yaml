@@ -3,6 +3,7 @@ name: "griffin"
 strength: 10
 exp: 2000
 level: 13
+exp_level: 13
 armor: 2
 max_hp: 102
 color: "white"

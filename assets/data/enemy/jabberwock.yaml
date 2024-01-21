@@ -3,6 +3,7 @@ name: "jabberwock"
 strength: 10
 exp: 3000
 level: 15
+exp_level: 15
 armor: 6
 max_hp: 120
 color: "white"

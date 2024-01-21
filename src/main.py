@@ -88,6 +88,7 @@ def setup_game(screen):
     # set enemy
     enemy_manager = EnemyManager()
     enemy_manager.create_enemies(game, player.status.level, 5)
+    game.set_enemy_manager(enemy_manager)
 
     # set gold
     game.place_gold_in_dungeon(player.status.level)
@@ -140,6 +141,7 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         enemy_manager.update_enemies(game)
         # TODO: add effect rings.
         player.update_turn()
+        game.update_turn()
 
 
 def draw_game(screen, drawer, game, player):

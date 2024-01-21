@@ -3,6 +3,7 @@ name: "nymph"
 strength: 10
 exp: 37
 level: 3
+exp_level: 3
 armor: 9
 max_hp: 24
 color: "white"

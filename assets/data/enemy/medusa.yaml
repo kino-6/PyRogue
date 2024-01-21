@@ -3,6 +3,7 @@ name: "medusa"
 strength: 10
 exp: 200
 level: 8
+exp_level: 8
 armor: 2
 max_hp: 64
 color: "white"

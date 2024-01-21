@@ -3,6 +3,7 @@ name: "emu"
 strength: 10
 exp: 2
 level: 1
+exp_level: 1
 armor: 7
 max_hp: 8
 color: "white"

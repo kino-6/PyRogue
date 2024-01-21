@@ -7,6 +7,9 @@ from gold import Gold
 from item import Item
 from food import Food
 from enum import Enum
+from weapon import Weapon, WeaponManager
+from armor import Armor
+from ring import Ring
 
 
 class GameState(Enum):
@@ -28,6 +31,9 @@ class Game:
     def set_logger(self, logger, log_messages):
         self.logger = logger
         self.log_messages = log_messages
+
+    def set_enemy_manager(self, enemy_manager):
+        self.enemy_manager = enemy_manager
 
     def reset_player_and_rooms(self, start_pos=[0, 0]):
         # プレイヤーの位置と探索済みの部屋をリセット
@@ -164,12 +170,20 @@ class Game:
             self.add_entity(gold)
 
     def place_items_in_dungeon(self, current_level):
-        num_items = const.NUMTHINGS + 255
+        num_items = const.NUMTHINGS + 99
         for _ in range(num_items):
-            # ToDo: randam choice
-            food = Food()
-            self.teleport_entity(food)
-            self.add_entity(food)
+            entity_type_list = [Food, Weapon, Armor, Ring]
+            entity_type = random.choice(entity_type_list)
+
+            if entity_type == Weapon:
+                wm = WeaponManager()
+                entity = wm.get_random_weapon()
+            else:
+                entity = Food()
+
+            # print(type(entity), entity_type)
+            self.teleport_entity(entity)
+            self.add_entity(entity)
 
     def print_entity_positions(self, entity_name):
         for pos, entities in self.entity_positions.items():
@@ -214,40 +228,42 @@ class Game:
         pygame.display.flip()
 
     def handle_food_selection(self, character):
-        use_turn = False
         food_items = character.get_inventory_with_key(Food)
-        if food_items:
-            self.renew_logger_window(f"Choose food, {', '.join(food_items.keys())}")
-            self.waiting_for_food_selection = True
-        else:
-            self.renew_logger_window(f"There is no food.")
-            self.waiting_for_food_selection = False
+        if not food_items:
+            self.renew_logger_window("There is no food.")
+            return False
 
-        while self.waiting_for_food_selection:
+        self.renew_logger_window(f"Choose food, {', '.join(food_items.keys())}")
+        
+        selected_food = self.wait_for_item_selection(food_items)
+        if selected_food:
+            selected_food.use(character)
+            character.inventory.remove_item(selected_food)
+            self.renew_logger_window("Yammy.")
+            return True
+        else:
+            self.renew_logger_window("This is not food.")
+            return False
+
+    def wait_for_item_selection(self, items):
+        while True:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key in const.a_z_KEY:
                         pressed_key = chr(event.key)
-                        selected_food = food_items.get(pressed_key)
-                        if selected_food:
-                            selected_food.use(character)
-                            character.inventory.remove_item(selected_food)
-                            self.waiting_for_food_selection = False
-                            use_turn = True
-                            break
-                    else:
-                        self.waiting_for_food_selection = False
-                        break
+                        return items.get(pressed_key)
+                    return None
 
-        # message
-        if use_turn:
-            self.renew_logger_window("Yammy.")
-        elif self.waiting_for_food_selection:
-            self.renew_logger_window("This is not food.")
-        else:
-            self.renew_logger_window("I knew it. I stopped.")
+    def respawn_enemy(self):
+        player = self.get_player()
 
-        return use_turn
+        if player.turn % 4 == 0:
+            respawn = random.randint(1, 6)
+            if respawn == 4:
+                self.enemy_manager.create_enemies(self, player.status.level, 1)
+
+    def update_turn(self):
+        self.respawn_enemy()
 
     def enter_new_dungeon(self, enemy_manager):
         """新しいダンジョンへ移動する"""

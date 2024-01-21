@@ -3,6 +3,7 @@ name: "quagga"
 strength: 10
 exp: 15
 level: 3
+exp_level: 3
 armor: 3
 max_hp: 24
 color: "white"

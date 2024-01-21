@@ -12,6 +12,7 @@ class Status:
         self.level = data["level"]
         self.armor = data["armor"]
         self.color = data["color"]
+        self.exp_level = data["exp_level"]
 
         # calc
         self.current_hp = self.max_hp
@@ -33,7 +34,8 @@ class Status:
             f"Hp: {self.current_hp}/{self.max_hp}",
             f"Str: {self.strength}",
             f"Ac: {self.armor}",
-            f"Exp: {self.exp}/{self.next_exp}",
+            f"ExpLv: {self.exp_level}",
+            f"Exp: {self.exp}",
             f"Food: {int((self.food_left / const.STOMACHSIZE)*100)} %",
         ]
         return status_txt

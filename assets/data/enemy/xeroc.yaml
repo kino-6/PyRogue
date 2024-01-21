@@ -3,6 +3,7 @@ name: "xeroc"
 strength: 10
 exp: 100
 level: 7
+exp_level: 7
 armor: 7
 max_hp: 56
 color: "white"

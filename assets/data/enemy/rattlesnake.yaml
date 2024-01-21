@@ -3,6 +3,7 @@ name: "rattlesnake"
 strength: 10
 exp: 9
 level: 2
+exp_level: 2
 armor: 3
 max_hp: 16
 color: "white"

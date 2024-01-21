@@ -1,0 +1,9 @@
+name: "Dagger"
+char: ")"
+color: "white"
+undefined_name: "Unknown weapon"
+wielded_dice: "1d6+1d6"
+throw_dice: "1d4"
+use_effect: None
+dmg_bonus: 0
+hit_bonus: 2
