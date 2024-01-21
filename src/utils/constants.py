@@ -17,6 +17,7 @@ LOG_WRAP_SIZE = 57
 DRAW_LOG_SIZE = 3
 DRAW_LOG_MARGIN = 20
 
+# https://www.pygame.org/docs/ref/color_list.html
 PYGAME_COLOR_WHITE = (255, 255, 255)
 PYGAME_COLOR_BLACK = (0, 0, 0)
 

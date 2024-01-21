@@ -2,13 +2,12 @@ import yaml
 import random
 import glob
 from equipment import Equipment
-from character import Character
 from utils.assets_manager import AssetsManager
 
 
 class Weapon(Equipment):
-    def __init__(self, x=0, y=0, weapon_data={}):
-        super().__init__("Weapon", x, y, char=")", color="white")
+    def __init__(self, x=0, y=0, weapon_data={}, is_cursed=False):
+        super().__init__("Weapon", x, y, char=")", color="white", is_cursed=is_cursed)
         self.load_data(weapon_data)
 
     def load_data(self, data):
@@ -25,6 +24,25 @@ class Weapon(Equipment):
         self.dmg_bonus = data.get("dmg_bonus", "0")
         self.hit_bonus = data.get("hit_bonus", "0")
         self.use_effect = data.get("use_effect", None)
+        self.display_name = self.undefined_name
+
+    def attach_equip_info(self):
+        equip_msg = ""
+        if self.is_equipped:
+            equip_msg = "[E] "
+        self.display_name = equip_msg + self.display_name
+
+    def attach_curse_blessing_info(self):
+        msg = ""
+        if self.is_cursed:
+            msg = "[C] "
+        self.display_name = msg + self.display_name
+
+    def appraisal(self):
+        self.is_defined = True
+        self.display_name = f"{self.name} {self.wielded_dice} + {self.dmg_bonus}"
+        self.attach_curse_blessing_info()
+        self.attach_equip_info()
 
     def __repr__(self):
         message = f"{self.name}, {self.char}, {self.wielded_dice}"
@@ -34,13 +52,15 @@ class Weapon(Equipment):
         # 武器のダメージを計算する処理
         pass
 
-    def equip(self, character: Character):
-        super().equip(character)
-        # 武器を装備した際の効果、例えば攻撃力の増加などをここに実装
+    def equip(self, character):
+        super().equip(character, Weapon)
+        self.appraisal()
+        # print("equip ", self.display_name)
 
-    def unequip(self, character: Character):
+    def unequip(self, character):
         super().unequip(character)
-        # 武器を外した際の処理をここに実装
+        self.appraisal()
+        # print("unequip ", self.display_name)
 
 
 class WeaponManager:

@@ -9,8 +9,8 @@ from utils.assets_manager import AssetsManager
 
 class Food(Item):
     def __init__(self, x=0, y=0):
+        super().__init__("Food", x, y, ":", "white")
         self.load_data()
-        super().__init__(self.name, x, y, self.char, self.color)
         self.calc_nutrition()
 
     def load_data(self):
@@ -27,6 +27,7 @@ class Food(Item):
             self.nutrition_base = data.get("nutrition_base", const.HUNGERTIME)
             self.nutrition_tune = data.get("nutrition_tune", const.FOOD_TUNE_VALUE)
             self.nutrition_rand_max = data.get("nutrition_rand_max", const.FOOD_RAND_MAX)
+            self.display_name = self.undefined_name
 
     def calc_nutrition(self):
         self.nutrition = self.nutrition_base - self.nutrition_tune + random.randint(0, self.nutrition_rand_max)

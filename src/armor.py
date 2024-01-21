@@ -1,5 +1,4 @@
 from equipment import Equipment
-from character import Character
 from utils.assets_manager import AssetsManager
 
 
@@ -17,10 +16,10 @@ class Armor(Equipment):
         # 防具の防御力を計算する処理
         pass
 
-    def equip(self, character: Character):
+    def equip(self, character):
         super().equip(character)
         # 防具を装備した際の効果、例えば防御力の増加などをここに実装
 
-    def unequip(self, character: Character):
+    def unequip(self, character):
         super().unequip(character)
         # 防具を外した際の処理をここに実装

@@ -1,7 +1,7 @@
 name: "Spear"
 char: ")"
 color: "white"
-undefined_name: "Unknown weapon"
+undefined_name: "Pointed Stick?"
 wielded_dice: "2d3"
 throw_dice: "1d6"
 use_effect: None

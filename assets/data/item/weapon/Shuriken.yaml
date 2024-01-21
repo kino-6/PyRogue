@@ -1,7 +1,7 @@
 name: "Shuriken"
 char: ")"
 color: "white"
-undefined_name: "Unknown weapon"
+undefined_name: "Throwing Star?"
 wielded_dice: "1d2"
 throw_dice: "2d4"
 use_effect: None

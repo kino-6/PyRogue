@@ -1,7 +1,7 @@
 name: "two handed sword"
 char: ")"
 color: "white"
-undefined_name: "Unknown weapon"
+undefined_name: "Huge Weapon?"
 wielded_dice: "4d4"
 throw_dice: "1d2"
 use_effect: None

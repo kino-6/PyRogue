@@ -124,12 +124,14 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
             use_turn = True
     elif action == "descend_stairs":
         if game.player_on_stairs():
-            print("on stair? ", game.player_on_stairs())
+            # print("on stair? ", game.player_on_stairs())
             game.enter_new_dungeon(enemy_manager)
     elif action == "rest":
         use_turn = True
     elif action == "eat_food":
         use_turn = game.handle_food_selection(player)
+    elif action == "wield_a_weapon":
+        use_turn = game.handle_weapon_selection(player)
     else:
         game.update_player_position([player.x, player.y])
         use_turn = False

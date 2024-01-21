@@ -245,6 +245,27 @@ class Game:
             self.renew_logger_window("This is not food.")
             return False
 
+    def handle_weapon_selection(self, character):
+        weapon_items = character.get_inventory_with_key(Weapon)
+        if not weapon_items:
+            self.renew_logger_window("There is no weapon.")
+            return False
+
+        self.renew_logger_window(f"Choose weapon, {', '.join(weapon_items.keys())}")
+        
+        selected_weapon = self.wait_for_item_selection(weapon_items)
+        if selected_weapon:
+            # print(character.equipped_weapon)
+            if character.equipped_weapon:
+                character.equipped_weapon.unequip(character)
+            selected_weapon.equip(character)
+            self.renew_logger_window(f"You are now wielding {selected_weapon.name}")
+            return True
+        else:
+            self.renew_logger_window("This is not weapon.")
+            return False
+
+
     def wait_for_item_selection(self, items):
         while True:
             for event in pygame.event.get():

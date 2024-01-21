@@ -1,18 +1,26 @@
 from item import Item
-from character import Character
 
 
 class Equipment(Item):
-    def __init__(self, name, x=0, y=0, char="e", color="white", undefined_name=""):
+    def __init__(self, name, x=0, y=0, char="e", color="white", undefined_name="", is_cursed=False):
         super().__init__(name, x, y, char, color, undefined_name)
         self.is_equipped = False
+        self.is_cursed = is_cursed
 
-    def equip(self, character: Character):
-        # 装備する際の処理をここに実装します。
+    def define_position(self, character):
+        position = "left"
+        if character.equipped_left_ring:
+            position = "right"
+        return position
+
+    def equip(self, character, type):
         self.is_equipped = True
+        position = self.define_position(character)
+        character.equip(type, self, position)
         pass
 
-    def unequip(self, character: Character):
-        # 装備を外す際の処理をここに実装します。
+    def unequip(self, character):
         self.is_equipped = False
+        position = self.define_position(character)
+        character.equip(type, None, position)
         pass

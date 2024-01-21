@@ -12,4 +12,4 @@ class Inventory:
         self.items.remove(item)
 
     def __str__(self):
-        return ", ".join(item.name for item in self.items)
+        return ", ".join(item.display_name for item in self.items)

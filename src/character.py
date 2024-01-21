@@ -6,7 +6,9 @@ import utils.constants as const
 import string
 from typing import Type
 from typing import Dict, Optional
-
+from weapon import Weapon
+from armor import Armor
+from ring import Ring
 
 class Character(Entity):
     def __init__(self, x, y, status: Status, logger=None):
@@ -46,10 +48,12 @@ class Character(Entity):
     def get_inventory_str_list(self):
         KEY_LIST = list(string.ascii_lowercase)
         result_str = []
+        is_defined_list = []
         for i, item in enumerate(self.inventory.items):
             idx_key = self.get_looped_element(i, KEY_LIST)
-            result_str.append(f"{idx_key}) {item.name}")
-        return result_str
+            result_str.append(f"{idx_key}) {item.display_name}")
+            is_defined_list.append(item.is_defined)
+        return result_str, is_defined_list
 
     def get_char(self):
         return self.status.char
@@ -118,3 +122,14 @@ class Character(Entity):
 
     def use_item(self, item):
         item.use(self)
+
+    def equip(self, type, equipment, position="left"):
+        if type == Weapon:
+            self.equipped_weapon = equipment
+        elif type == Armor:
+            self.equipped_armor = equipment
+        else:
+            if position == "left":
+                self.equipped_left_ring = equipment
+            else:
+                self.equipped_right_ring = equipment

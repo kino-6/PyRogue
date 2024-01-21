@@ -1,7 +1,7 @@
 name: "Food"
 char: ":"
 color: "brown"
-undefined_name: "Unknown Food"
+undefined_name: "some food"
 nutrition_base: 1300  # HUNGERTIME
 nutrition_tune: 200   # FOOD_TUNE_VALUE
 nutrition_rand_max: 200

@@ -1,7 +1,7 @@
 name: "Mace"
 char: ")"
 color: "white"
-undefined_name: "Unknown weapon"
+undefined_name: "Blunt Club?"
 wielded_dice: "2d4"
 throw_dice: "1d3"
 use_effect: None

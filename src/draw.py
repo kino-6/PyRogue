@@ -74,6 +74,7 @@ class Draw:
         width,
         height,
         logs,
+        log_colors,
         border_color=const.PYGAME_COLOR_WHITE,
         border_width=1,
         background_color=const.PYGAME_COLOR_BLACK,
@@ -83,14 +84,12 @@ class Draw:
         self.draw_window(x, y, width, height, border_color, border_width, background_color)
 
         log_font = self.assets_manager.load_font(font, font_size)
-        log_x = x + border_width
         log_y = y + border_width
-        for log in logs:
-            log_text = log_font.render(log, True, const.PYGAME_COLOR_WHITE)
-            self.screen.blit(log_text, (log_x + 5, log_y + 5))
-            log_y += log_font.get_height()  # 次のログのY座標を更新
-
-            # ウィンドウの高さを超えたら描画を停止
+        for log, color in zip(logs, log_colors):
+            # log_color = getattr(const, f"PYGAME_COLOR_{color.upper()}", const.PYGAME_COLOR_WHITE)
+            log_text = log_font.render(log, True, color)
+            self.screen.blit(log_text, (x + 5, log_y + 5))
+            log_y += log_font.get_height()
             if log_y + log_font.get_height() > y + height:
                 break
 
@@ -108,19 +107,28 @@ class Draw:
         x, y = self.get_game_map_size_px()
         window_width = x
         window_height = const.WINDOW_SIZE_H - y
-        self.draw_window_with_logs(0, y, window_width, window_height, logs[-n:])  # 最新のn個のログを描画
+        recent_logs = logs[-n:]  # 最新のn個のログを取得
+
+        log_colors = ["white"] * len(recent_logs)  # すべてのログ行を白色に設定
+        self.draw_window_with_logs(0, y, window_width, window_height, recent_logs, log_colors)
 
     def draw_status_window(self, status: Status):
         status_txt = status.generate_status_txt()
+        log_colors = ["white"] * len(status_txt)
+
         x, y = self.get_game_map_size_px()
         window_width = const.WINDOW_SIZE_W - x
         window_height = const.WINDOW_SIZE_H
-        self.draw_window_with_logs(x, 0, window_width, window_height, status_txt, font_size=const.LOG_FONT_SIZE)
+        self.draw_window_with_logs(x, 0, window_width, window_height, status_txt, log_colors, font_size=const.LOG_FONT_SIZE)
 
     def draw_inventory_window(self, character: Character):
-        inventory_txt = character.get_inventory_str_list()
+        inventory_txt, is_defined_list = character.get_inventory_str_list()
+        log_colors = ["darkgoldenrod2" if not is_defined else "white" for is_defined in is_defined_list]
+
         x, y = self.get_game_map_size_px()
         window_width = const.WINDOW_SIZE_W - x
         window_height = const.WINDOW_SIZE_H
         status_window_height = const.FONT_SIZE * 8
-        self.draw_window_with_logs(x, status_window_height, window_width, window_height, inventory_txt, font_size=16)
+
+        self.draw_window_with_logs(x, status_window_height, window_width, window_height, inventory_txt, log_colors, font_size=16)
+

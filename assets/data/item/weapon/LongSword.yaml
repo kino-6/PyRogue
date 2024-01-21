@@ -1,7 +1,7 @@
 name: "LongSword"
 char: ")"
 color: "white"
-undefined_name: "Unknown weapon"
+undefined_name: "Ten-fist Sword?"
 wielded_dice: "3d4"
 throw_dice: "1d2"
 use_effect: None

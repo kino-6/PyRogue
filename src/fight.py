@@ -47,7 +47,10 @@ class Fight:
             hit_bonus = weapon.hit_bonus
             dmg_bonus = weapon.dmg_bonus
             # ex. 1d3+1d3
-            attack_damage = weapon.wielded_dice if not hurl else weapon.throw_dice
+            if is_throw:
+                attack_damage = weapon.throw_dice
+            else:
+                attack_damage = weapon.wielded_dice
 
         # リングの効果（仮の処理）
         # ここにリングによる攻撃力やダメージのボーナスを適用するコードを追加
