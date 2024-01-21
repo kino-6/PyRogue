@@ -113,9 +113,9 @@ class Character(Entity):
             if len(self.inventory.items) < const.INVENTORY_MAX:
                 self.inventory.add_item(item)
                 game.remove_item_at_position(self.x, self.y)
-                self.add_logger(f"{self.status.name} pick {item.name}")
+                self.add_logger(f"{self.status.name} pick {item.display_name}")
             else:
-                self.add_logger(f"{self.status.name} can't pick up {item.name}, my bags full.")
+                self.add_logger(f"{self.status.name} can't pick up {item.display_name}, my bags full.")
 
     def gain_experience(self, value):
         self.status.exp += value
@@ -128,6 +128,8 @@ class Character(Entity):
             self.equipped_weapon = equipment
         elif type == Armor:
             self.equipped_armor = equipment
+            if equipment:
+                self.status.armor = equipment.armor
         else:
             if position == "left":
                 self.equipped_left_ring = equipment

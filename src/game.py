@@ -8,7 +8,7 @@ from item import Item
 from food import Food
 from enum import Enum
 from weapon import Weapon, WeaponManager
-from armor import Armor
+from armor import Armor, ArmorManager
 from ring import Ring
 
 
@@ -178,6 +178,9 @@ class Game:
             if entity_type == Weapon:
                 wm = WeaponManager()
                 entity = wm.get_random_weapon()
+            elif entity_type == Armor:
+                am = ArmorManager()
+                entity = am.get_random_armor()
             else:
                 entity = Food()
 
@@ -259,12 +262,31 @@ class Game:
             if character.equipped_weapon:
                 character.equipped_weapon.unequip(character)
             selected_weapon.equip(character)
-            self.renew_logger_window(f"You are now wielding {selected_weapon.name}")
+            self.renew_logger_window(f"You are now wielding {selected_weapon.display_name}")
             return True
         else:
             self.renew_logger_window("This is not weapon.")
             return False
 
+    def handle_armor_selection(self, character):
+        armor_items = character.get_inventory_with_key(Armor)
+        if not armor_items:
+            self.renew_logger_window("There is no armor.")
+            return False
+
+        self.renew_logger_window(f"Choose armor, {', '.join(armor_items.keys())}")
+        
+        selected_armor = self.wait_for_item_selection(armor_items)
+        if selected_armor:
+            # print(character.equipped_weapon)
+            if character.equipped_armor:
+                character.equipped_armor.unequip(character)
+            selected_armor.equip(character)
+            self.renew_logger_window(f"You are now wearing {selected_armor.display_name}")
+            return True
+        else:
+            self.renew_logger_window("This is not armor.")
+            return False
 
     def wait_for_item_selection(self, items):
         while True:

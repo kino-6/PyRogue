@@ -1,0 +1,9 @@
+name: "Ring mail"
+char: "]"
+color: "white"
+undefined_name: "Ringed Coat?"
+armor: 2
+throw_dice: "1d2"
+use_effect: None
+protection_bonus: 0
+avoidance_bonus: 0

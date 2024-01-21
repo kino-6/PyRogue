@@ -13,28 +13,29 @@ class InputHandler:
 
     def handle_keys(self, player_pos):
         keys = pygame.key.get_pressed()
+        mods = pygame.key.get_mods()  # 現在押されている修飾キーを取得
         self.dx, self.dy = 0, 0
 
         # 水平方向の移動
-        if keys[pygame.K_LEFT] or keys[pygame.K_h] or keys[pygame.K_KP4]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_KP4]:
             self.dx -= self.movement_speed
-        if keys[pygame.K_RIGHT] or keys[pygame.K_l] or keys[pygame.K_KP6]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_KP6]:
             self.dx += self.movement_speed
 
         # 垂直方向の移動
-        if keys[pygame.K_UP] or keys[pygame.K_k] or keys[pygame.K_KP8]:
+        if keys[pygame.K_UP] or keys[pygame.K_KP8]:
             self.dy -= self.movement_speed
-        if keys[pygame.K_DOWN] or keys[pygame.K_j] or keys[pygame.K_KP2]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_KP2]:
             self.dy += self.movement_speed
 
         # 斜め方向の移動
-        if keys[pygame.K_KP7] or keys[pygame.K_y]:
+        if keys[pygame.K_KP7]:
             self.dx, self.dy = -self.movement_speed, -self.movement_speed
-        if keys[pygame.K_KP9] or keys[pygame.K_u]:
+        if keys[pygame.K_KP9]:
             self.dx, self.dy = self.movement_speed, -self.movement_speed
-        if keys[pygame.K_KP1] or keys[pygame.K_b]:
+        if keys[pygame.K_KP1]:
             self.dx, self.dy = -self.movement_speed, self.movement_speed
-        if keys[pygame.K_KP3] or keys[pygame.K_n]:
+        if keys[pygame.K_KP3]:
             self.dx, self.dy = self.movement_speed, self.movement_speed
 
         # actions
@@ -44,6 +45,8 @@ class InputHandler:
             self.action = ("rest", player_pos[0], player_pos[1])
         elif keys[pygame.K_e]:
             self.action = ("eat_food", player_pos[0], player_pos[1])
+        elif mods & pygame.KMOD_SHIFT and keys[pygame.K_w]:
+            self.action = ("wear_armor", player_pos[0], player_pos[1])
         elif keys[pygame.K_w]:
             self.action = ("wield_a_weapon", player_pos[0], player_pos[1])
         else:
@@ -54,6 +57,8 @@ class InputHandler:
             # 移動先がプレイヤーの現在の位置と異なる場合のみ、アクションを決定
             if (new_x, new_y) != player_pos:
                 self.determine_action(player_pos, new_x, new_y)
+
+        # print("mods: ", mods & pygame.KMOD_SHIFT, "w: ", keys[pygame.K_w], self.action)
 
     def determine_action(self, current_pos, new_x, new_y):
         # 移動先のタイルを確認

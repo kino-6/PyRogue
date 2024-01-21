@@ -1,0 +1,9 @@
+name: "Studded leather armor"
+char: "]"
+color: "white"
+undefined_name: "Studded Coat?"
+armor: 3
+throw_dice: "1d2"
+use_effect: None
+protection_bonus: 0
+avoidance_bonus: 0

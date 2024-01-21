@@ -1,0 +1,9 @@
+name: "Plate mail"
+char: "]"
+color: "white"
+undefined_name: "Heavy Armor?"
+armor: 8
+throw_dice: "1d2"
+use_effect: None
+protection_bonus: 0
+avoidance_bonus: 0

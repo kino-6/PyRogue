@@ -40,7 +40,10 @@ class Weapon(Equipment):
 
     def appraisal(self):
         self.is_defined = True
-        self.display_name = f"{self.name} {self.wielded_dice} + {self.dmg_bonus}"
+        if self.dmg_bonus > 0:
+            self.display_name = f"{self.name} {self.wielded_dice} + {self.dmg_bonus}"
+        else:
+            self.display_name = f"{self.name} {self.wielded_dice}"
         self.attach_curse_blessing_info()
         self.attach_equip_info()
 
