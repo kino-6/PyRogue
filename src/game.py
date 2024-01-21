@@ -7,6 +7,7 @@ from gold import Gold
 from item import Item
 from food import Food
 from enum import Enum
+from character import Character
 from weapon import Weapon, WeaponManager
 from armor import Armor, ArmorManager
 from ring import Ring
@@ -150,8 +151,17 @@ class Game:
 
     def is_walkable(self, x, y):
         """指定された座標が移動可能かどうかを判断する"""
+        # タイル自体が移動可能かどうかをチェック
         walkable_tiles = self.get_walkable_tiles()
-        return (x, y) in walkable_tiles
+        if (x, y) not in walkable_tiles:
+            return False
+
+        # 指定座標にあるエンティティのリストを取得
+        entities_at_new_pos = self.entity_positions.get((x, y), [])
+        if any(isinstance(entity, Character) for entity in entities_at_new_pos):
+            return False
+
+        return True
 
     def player_collect_gold(self, player, gold_entity):
         player.status.gold += gold_entity.amount

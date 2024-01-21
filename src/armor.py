@@ -36,7 +36,7 @@ class Armor(Equipment):
 
     def appraisal(self):
         self.is_defined = True
-        if self.dmg_bonus > 0:
+        if self.protection_bonus > 0:
             self.display_name = f"{self.name} {self.armor} + {self.protection_bonus}"
         else:
             self.display_name = f"{self.name} {self.armor}"
