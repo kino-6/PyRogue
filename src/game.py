@@ -149,7 +149,7 @@ class Game:
                     walkable_tiles.append((x, y))
         return walkable_tiles
 
-    def is_walkable(self, x, y):
+    def is_walkable(self, x, y) -> bool:
         """指定された座標が移動可能かどうかを判断する"""
         # タイル自体が移動可能かどうかをチェック
         walkable_tiles = self.get_walkable_tiles()
