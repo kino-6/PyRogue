@@ -1,4 +1,4 @@
-import utils.constants as const
+import constants as const
 from character import Character
 
 

@@ -3,8 +3,8 @@ import random
 from item import Item
 from entity import Entity
 from character import Character
-import utils.constants as const
-from utils.assets_manager import AssetsManager
+import constants as const
+from assets_manager import AssetsManager
 
 
 class Food(Item):

@@ -1,5 +1,5 @@
 from equipment import Equipment
-from utils.assets_manager import AssetsManager
+from assets_manager import AssetsManager
 import random
 
 

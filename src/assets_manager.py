@@ -9,7 +9,7 @@ from typing import List
 class AssetsManager:
     def __init__(self):
         # スクリプトのあるディレクトリの絶対パスを取得
-        self.base_path = Path(__file__).parent.parent.parent
+        self.base_path = Path(__file__).parent.parent
 
     def get_font_path(self, font_name) -> Path:
         # フォントファイルへのパスを生成

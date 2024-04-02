@@ -1,4 +1,4 @@
-import utils.constants as const
+import constants as const
 import random
 from stair import Stairs
 from entity import Entity

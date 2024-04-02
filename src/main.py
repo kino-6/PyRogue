@@ -1,14 +1,16 @@
+import init_project
+
 import pygame
 import sys
 from player import Player
 from input_handler import InputHandler
-import utils.constants as const
+import constants as const
 from map import GameMap
 from draw import Draw
 from game import Game
 from enemy import EnemyManager
 from enemy import Enemy
-from utils.assets_manager import AssetsManager
+from assets_manager import AssetsManager
 from status import Status
 from fight import Fight
 from stair import Stairs
@@ -18,6 +20,8 @@ import logging
 import yaml
 import threading
 import time
+from game_initializer import GameInitializer
+
 
 # TODO
 random.seed(42)
@@ -53,47 +57,25 @@ def initialize_game():
     return screen, clock
 
 
+# src/main.py の一部
 def setup_game(screen):
     game_map = GameMap()
     assets_manager = AssetsManager()
 
-    # set game manager
     game = Game(game_map)
-
-    # set logger
     game.set_logger(logger, log_messages)
 
-    # set drawer
     drawer = Draw(screen, assets_manager, game_map)
     game.set_drawer(drawer)
 
-    # set input
     input_handler = InputHandler(const.GRID_MOVEMENT_SPEED, game, game_map)
 
-    # set player
-    yaml_file = assets_manager.get_chara_path(const.PLAYER_STATUS)
-    with open(yaml_file, "r") as file:
-        status_data = yaml.safe_load(file)
-    player_status = Status(status_data)
+    initializer = GameInitializer(game, logger)
+    player = initializer.setup_player()
+    stair = initializer.setup_stairs()
+    enemy_manager = initializer.setup_enemies(player.status.level, 5)
 
-    player = Player(0, 0, player_status, logger)
-    game.teleport_entity(player)
-    game.add_entity(player)
-
-    # set stair
-    stair = Stairs()
-    game.teleport_entity(stair)
-    game.add_entity(stair)
-
-    # set enemy
-    enemy_manager = EnemyManager()
-    enemy_manager.create_enemies(game, player.status.level, 5)
-    game.set_enemy_manager(enemy_manager)
-
-    # set gold
     game.place_gold_in_dungeon(player.status.level)
-
-    # set items
     game.place_items_in_dungeon(player.status.level)
 
     return game, drawer, input_handler, player, enemy_manager

@@ -1,5 +1,5 @@
 import pygame
-import utils.constants as const
+import constants as const
 from status import Status
 from player import Player
 from character import Character

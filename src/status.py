@@ -1,5 +1,5 @@
 import yaml
-import utils.constants as const
+import constants as const
 
 
 class Status:

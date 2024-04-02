@@ -1,8 +1,8 @@
-import utils.constants as const
+import constants as const
 from character import Character
 from game import Game
 from status import Status
-from utils.assets_manager import AssetsManager
+from assets_manager import AssetsManager
 import os
 import yaml
 import glob

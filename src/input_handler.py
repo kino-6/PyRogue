@@ -1,5 +1,5 @@
 import pygame
-import utils.constants as const
+import constants as const
 from enemy import Enemy
 import time
 

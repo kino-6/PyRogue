@@ -2,7 +2,7 @@ import yaml
 import random
 import glob
 from equipment import Equipment
-from utils.assets_manager import AssetsManager
+from assets_manager import AssetsManager
 
 
 class Weapon(Equipment):

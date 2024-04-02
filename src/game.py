@@ -1,7 +1,7 @@
 import pygame
 import random
 from map import GameMap
-import utils.constants as const
+import constants as const
 from stair import Stairs
 from gold import Gold
 from item import Item

@@ -2,7 +2,7 @@ from status import Status
 from entity import Entity
 from item import Item
 from inventory import Inventory
-import utils.constants as const
+import constants as const
 import string
 from typing import Type
 from typing import Dict, Optional
