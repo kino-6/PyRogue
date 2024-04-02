@@ -247,7 +247,7 @@ class Game:
             return False
 
         self.renew_logger_window(f"Choose food, {', '.join(food_items.keys())}")
-        
+
         selected_food = self.wait_for_item_selection(food_items)
         if selected_food:
             selected_food.use(character)
@@ -265,7 +265,7 @@ class Game:
             return False
 
         self.renew_logger_window(f"Choose weapon, {', '.join(weapon_items.keys())}")
-        
+
         selected_weapon = self.wait_for_item_selection(weapon_items)
         if selected_weapon:
             # print(character.equipped_weapon)
@@ -285,7 +285,7 @@ class Game:
             return False
 
         self.renew_logger_window(f"Choose armor, {', '.join(armor_items.keys())}")
-        
+
         selected_armor = self.wait_for_item_selection(armor_items)
         if selected_armor:
             # print(character.equipped_weapon)

@@ -1,0 +1,12 @@
+name: "hit ring"
+char: "="
+color: "white"
+undefined_name: "ring?"
+armor: 0
+throw_dice: "1d2"
+use_effect: "add_strength"
+protection_bonus: 0
+avoidance_bonus: 0
+dmg_bonus: 0
+hit_bonus: 99
+flavor_text: "You'll always hit the target."

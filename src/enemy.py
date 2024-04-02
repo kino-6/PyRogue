@@ -141,8 +141,7 @@ class ChasePlayerBehavior(EnemyBehavior):
             new_x, new_y = int(enemy.x + dx), int(enemy.y + dy)  # 新しい位置を計算
 
             # 新しい位置が移動可能であることを確認
-            if game.is_walkable(new_x, new_y) and \
-                new_x != player.x and new_y != player.y:
+            if game.is_walkable(new_x, new_y) and new_x != player.x and new_y != player.y:
                 return {"type": "move", "new_x": new_x, "new_y": new_y}
 
         # プレイヤーが一定範囲内にいる場合に攻撃

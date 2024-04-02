@@ -119,7 +119,9 @@ class Draw:
         x, y = self.get_game_map_size_px()
         window_width = const.WINDOW_SIZE_W - x
         window_height = const.WINDOW_SIZE_H
-        self.draw_window_with_logs(x, 0, window_width, window_height, status_txt, log_colors, font_size=const.LOG_FONT_SIZE)
+        self.draw_window_with_logs(
+            x, 0, window_width, window_height, status_txt, log_colors, font_size=const.LOG_FONT_SIZE
+        )
 
     def draw_inventory_window(self, character: Character):
         inventory_txt, is_defined_list = character.get_inventory_str_list()
@@ -130,5 +132,6 @@ class Draw:
         window_height = const.WINDOW_SIZE_H
         status_window_height = const.FONT_SIZE * 8
 
-        self.draw_window_with_logs(x, status_window_height, window_width, window_height, inventory_txt, log_colors, font_size=16)
-
+        self.draw_window_with_logs(
+            x, status_window_height, window_width, window_height, inventory_txt, log_colors, font_size=16
+        )

@@ -1,6 +1,8 @@
 from equipment import Equipment
 from utils.assets_manager import AssetsManager
 import random
+
+
 class Armor(Equipment):
     def __init__(self, x=0, y=0, armor_data={}, is_cursed=False):
         super().__init__("Armor", x, y, char="]", color="white", is_cursed=is_cursed)
@@ -54,6 +56,7 @@ class Armor(Equipment):
     def unequip(self, character):
         super().unequip(character)
         self.appraisal()
+
 
 class ArmorManager:
     def __init__(self):

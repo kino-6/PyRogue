@@ -1,5 +1,6 @@
 class Node:
-    """ 経路探索のためのノード """
+    """経路探索のためのノード"""
+
     def __init__(self, x, y, parent=None):
         self.x = x
         self.y = y
@@ -8,12 +9,14 @@ class Node:
         self.h = 0  # ゴールまでの推定コスト
         self.f = 0  # g + h
 
+
 def heuristic(node, goal):
-    """ ヒューリスティック関数（ここではマンハッタン距離を使用） """
+    """ヒューリスティック関数（ここではマンハッタン距離を使用）"""
     return abs(node.x - goal.x) + abs(node.y - goal.y)
 
+
 def a_star_search(start, goal, game):
-    """ A*アルゴリズムによる経路探索 """
+    """A*アルゴリズムによる経路探索"""
     open_set = [start]
     closed_set = set()
 

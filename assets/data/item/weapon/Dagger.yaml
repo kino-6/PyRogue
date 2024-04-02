@@ -7,3 +7,4 @@ throw_dice: "1d4"
 use_effect: None
 dmg_bonus: 0
 hit_bonus: 2
+flavor_text: "Description: A small and lightweight blade. Suitable for quick attacks and easy concealment."

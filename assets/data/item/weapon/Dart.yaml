@@ -7,3 +7,4 @@ throw_dice: "1d3+1d3"
 use_effect: None
 dmg_bonus: 0
 hit_bonus: 1
+flavor_text: "A small throwing weapon used for precise attacks from a distance."

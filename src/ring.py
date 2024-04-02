@@ -2,6 +2,7 @@ from equipment import Equipment
 from utils.assets_manager import AssetsManager
 import random
 
+
 class Ring(Equipment):
     def __init__(self, x=0, y=0, ring_data={}, is_cursed=False):
         super().__init__("Ring", x, y, char="=", color="white")
@@ -23,6 +24,7 @@ class Ring(Equipment):
     def unequip(self, character):
         super().unequip(character)
         # 指輪を外した際の処理をここに実装
+
 
 class RingManager:
     def __init__(self):

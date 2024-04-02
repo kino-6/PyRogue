@@ -7,3 +7,4 @@ throw_dice: "2d4"
 use_effect: None
 dmg_bonus: 0
 hit_bonus: 3
+flavor_text: "A small and sharp throwing weapon. Known for its use by ninjas."

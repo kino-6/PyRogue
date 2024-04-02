@@ -6,4 +6,5 @@ armor: 1
 throw_dice: "1d2"
 use_effect: None
 protection_bonus: 0
-avoidance_bonus: 0
+avoidance_bonus: 1
+flavor_text: "Armor made from thick leather. Lightweight and easy to move in."

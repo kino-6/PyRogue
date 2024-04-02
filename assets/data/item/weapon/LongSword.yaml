@@ -7,3 +7,4 @@ throw_dice: "1d2"
 use_effect: None
 dmg_bonus: 1
 hit_bonus: 1
+flavor_text: "A sword with a long blade. Offers a balanced attack and hit."

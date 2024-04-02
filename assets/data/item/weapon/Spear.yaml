@@ -7,3 +7,4 @@ throw_dice: "1d6"
 use_effect: None
 dmg_bonus: 1
 hit_bonus: 0
+flavor_text: "A weapon with a sharp blade on a long shaft. Used for thrusting or throwing."

@@ -7,3 +7,4 @@ throw_dice: "1d2"
 use_effect: None
 dmg_bonus: 2
 hit_bonus: 0
+flavor_text: "A large and powerful sword. Wielded with both hands to deliver mighty attacks."

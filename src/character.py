@@ -10,6 +10,7 @@ from weapon import Weapon
 from armor import Armor
 from ring import Ring
 
+
 class Character(Entity):
     def __init__(self, x, y, status: Status, logger=None):
         super().__init__(x, y, status.char, status.color)

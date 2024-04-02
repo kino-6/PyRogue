@@ -6,4 +6,5 @@ armor: 6
 throw_dice: "1d2"
 use_effect: None
 protection_bonus: 0
-avoidance_bonus: 0
+avoidance_bonus: -2
+flavor_text: "Heavy armor reinforced with metal strips. Offers high defense but restricts movement."

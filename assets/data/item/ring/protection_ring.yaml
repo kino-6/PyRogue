@@ -1,0 +1,12 @@
+name: "protection ring"
+char: "="
+color: "white"
+undefined_name: "ring?"
+armor: 0
+throw_dice: "1d2"
+use_effect: "protection"
+protection_bonus: 4
+avoidance_bonus: 0
+dmg_bonus: 0
+hit_bonus: 0
+flavor_text: ""
