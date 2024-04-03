@@ -57,7 +57,6 @@ def initialize_game():
     return screen, clock
 
 
-# src/main.py の一部
 def setup_game(screen):
     game_map = GameMap()
     assets_manager = AssetsManager()

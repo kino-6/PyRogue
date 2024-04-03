@@ -1,29 +1,29 @@
 from equipment import Equipment
 from assets_manager import AssetsManager
 import random
-
+from effect import *
 
 class Ring(Equipment):
-    def __init__(self, x=0, y=0, ring_data={}, is_cursed=False):
+    def __init__(self, x=0, y=0, ring_data={}, is_cursed=False, effect=None):
         super().__init__("Ring", x, y, char="=", color="white")
         self.load_data(ring_data)
-        self.calc_effect()
+        self.effect = effect
 
     def load_data(self, data):
-        # 指輪のデータを読み込む処理
-        pass
-
-    def calc_effect(self):
-        # 指輪の効果を計算する処理
-        pass
+        self.name = data.get("name", "Unknown Ring")
+        effect_name = data.get("use_effect")
+        if effect_name in EFFECT_MAP:
+            self.effect = EFFECT_MAP.get(effect_name, NoEffect)()
 
     def equip(self, character):
-        super().equip(character)
-        # 指輪を装備した際の特殊効果をここに実装
+        super().equip(character, "ring")
+        if self.effect:
+            self.effect.apply_effect(character)
 
     def unequip(self, character):
+        if self.effect:
+            self.effect.remove_effect(character)
         super().unequip(character)
-        # 指輪を外した際の処理をここに実装
 
 
 class RingManager:

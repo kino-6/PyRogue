@@ -7,31 +7,31 @@ from typing import List
 
 
 class AssetsManager:
-    def __init__(self):
-        # スクリプトのあるディレクトリの絶対パスを取得
-        self.base_path = Path(__file__).parent.parent
+    def __init__(self, base_path=None):
+        if base_path is None:
+            self.base_path = Path(__file__).parent.parent
+        else:
+            self.base_path = Path(base_path)
 
-    def get_font_path(self, font_name) -> Path:
-        # フォントファイルへのパスを生成
-        return self.base_path / "assets" / "fonts" / font_name
+    def get_font_path(self, font_name):
+        return self.base_path.joinpath('assets', 'fonts', font_name)
 
     def load_font(self, font_name, size):
-        # フォントを読み込む
         font_path = self.get_font_path(font_name)
         return pygame.font.Font(str(font_path), size)
 
     def get_chara_path(self, data_name) -> Path:
-        return self.base_path / "assets" / "data" / "chara" / data_name
+        return self.base_path.joinpath("assets", "data", "chara", data_name)
 
     def get_enemy_path(self, data_name) -> Path:
-        return self.base_path / "assets" / "data" / "enemy" / data_name
+        return self.base_path.joinpath("assets", "data", "enemy", data_name)
 
     def get_all_enemy_paths(self) -> Path:
-        enemy_directory = self.base_path / "assets" / "data" / "enemy"
+        enemy_directory = self.base_path.joinpath("assets", "data", "enemy")
         return list(enemy_directory.glob("*.yaml"))
 
     def get_item_path(self, data_name) -> Path:
-        return self.base_path / "assets" / "data" / "item" / data_name
+        return self.base_path.joinpath("assets", "data", "item", data_name)
 
     def get_item_data_list(self, data_name) -> List:
         directory = self.get_item_path(data_name)
