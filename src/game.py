@@ -25,6 +25,7 @@ class Game:
         self.reset_player_and_rooms(start_pos)
         self.waiting_for_food_selection = False
         self.entity_positions = {}  # キーは座標タプル (x, y)、値はエンティティ
+        self.in_selection_mode = False
 
     def set_drawer(self, drawer):
         self.drawer = drawer
@@ -32,6 +33,9 @@ class Game:
     def set_logger(self, logger, log_messages):
         self.logger = logger
         self.log_messages = log_messages
+
+    def set_input_handler(self, input_handler):
+        self.input_handler = input_handler
 
     def set_enemy_manager(self, enemy_manager):
         self.enemy_manager = enemy_manager
@@ -239,7 +243,12 @@ class Game:
                 self.remove_entity(entity)
 
     def renew_logger_window(self, message):
-        self.logger.info(message)
+        # messageが複数行なら分割してリストに追加
+        if isinstance(message, str):
+            lines = message.splitlines()
+        else:
+            lines = list(message)
+        self.log_messages.extend(lines)
         self.drawer.draw_log_window(self.log_messages)
         pygame.display.flip()
 
@@ -317,14 +326,44 @@ class Game:
             self.renew_logger_window("This is not a ring.")
             return False
 
+    def handle_inspect_item(self, character):
+        self.in_selection_mode = True
+        # インベントリからアイテム選択
+        items = character.inventory.items
+        if not items:
+            self.renew_logger_window("There are no items in your inventory.")
+            self.in_selection_mode = False
+            return
+        self.renew_logger_window("Press the key of the item you wish to check.")
+        selected_item = self.wait_for_item_selection({k: v for k, v in zip("abcdefghijklmnopqrstuvwxyz", items)})
+        if selected_item:
+            info = selected_item.get_info()
+            self.renew_logger_window(info)
+        else:
+            self.renew_logger_window("Item was not selected.")
+        self.in_selection_mode = False
+
     def wait_for_item_selection(self, items):
+        selected_key = None
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key in const.a_z_KEY:
                         pressed_key = chr(event.key)
-                        return items.get(pressed_key)
-                    return None
+                        selected_key = pressed_key
+                        break
+                    elif event.key == pygame.K_ESCAPE:
+                        return None
+            if selected_key:
+                # 選択キーが離されるまで待つ
+                waiting_release = True
+                while waiting_release:
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYUP and chr(event.key) == selected_key:
+                            waiting_release = False
+                    pygame.time.wait(10)
+                return items.get(selected_key)
+            pygame.time.wait(10)
 
     def respawn_enemy(self):
         player = self.get_player()
@@ -333,6 +372,16 @@ class Game:
             respawn = random.randint(const.RESPAWN_DICE_MIN, const.RESPAWN_DICE_MAX)
             if respawn == 0:
                 self.enemy_manager.create_enemies(self, player.status.level, 1)
+
+    def identify_all_items(self):
+        player = self.get_player()
+        for item in player.inventory.items:
+            # 武器・防具・指輪などに応じて鑑定メソッドを呼ぶ
+            if hasattr(item, "appraisal_at_judgment"):
+                item.appraisal_at_judgment()
+            elif hasattr(item, "appraisal"):
+                item.appraisal()
+        self.renew_logger_window("all item identified (DebugMode)")
 
     def update_turn(self):
         self.respawn_enemy()
@@ -370,3 +419,14 @@ class Game:
 
         # set items
         self.place_items_in_dungeon(player.status.level)
+
+    def draw_help(self):
+        keymap = self.input_handler.keymap
+        self.drawer.draw_help_window(keymap)
+        pygame.display.flip()
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    waiting = False
+            pygame.time.wait(10)

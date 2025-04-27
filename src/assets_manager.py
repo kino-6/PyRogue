@@ -33,6 +33,9 @@ class AssetsManager:
     def get_item_path(self, data_name) -> Path:
         return self.base_path.joinpath("assets", "data", "item", data_name)
 
+    def get_config_path(self, data_name="config") -> Path:
+        return self.base_path.joinpath("assets", data_name)
+
     def get_item_data_list(self, data_name) -> List:
         directory = self.get_item_path(data_name)
         # print(f"directory = {directory}")

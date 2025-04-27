@@ -68,6 +68,7 @@ def setup_game(screen):
     game.set_drawer(drawer)
 
     input_handler = InputHandler(const.GRID_MOVEMENT_SPEED, game, game_map)
+    game.set_input_handler(input_handler)
 
     initializer = GameInitializer(game, logger)
     player = initializer.setup_player()
@@ -81,18 +82,19 @@ def setup_game(screen):
 
 
 def update_game(game, input_handler, player, enemy_manager, drawer):
-    # 入力処理
     use_turn = False
     input_handler.handle_keys([player.x, player.y])
 
-    # アクションに基づいてプレイヤーの動作を決定
     action, x, y = input_handler.action
-    if action == "move":
+    print(f"{action=}")
+
+    # アクション名→処理関数のディスパッチテーブル
+    def do_move():
         player.move(input_handler.dx, input_handler.dy, game)
         game.update_player_position([player.x, player.y])
-        # game.print_entity_positions('Gold')  # debug
-        use_turn = True
-    elif action == "attack":
+        return True
+
+    def do_attack():
         enemies = [
             entity for entities in game.entity_positions.values() for entity in entities if isinstance(entity, Enemy)
         ]
@@ -102,31 +104,69 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         )
         if target_entity is not None:
             fight.attack(player, target_entity)
-            use_turn = True
-    elif action == "descend_stairs":
+            return True
+        return False
+
+    def do_descend_stairs():
         if game.player_on_stairs():
-            # print("on stair? ", game.player_on_stairs())
             game.enter_new_dungeon(enemy_manager)
-    elif action == "rest":
-        use_turn = True
-    elif action == "eat_food":
-        use_turn = game.handle_food_selection(player)
-    elif action == "wield_a_weapon":
-        use_turn = game.handle_weapon_selection(player)
-    elif action == "wear_armor":
-        use_turn = game.handle_armor_selection(player)
-    elif action == "put_on_a_ring":
-        use_turn = game.handle_ring_selection(player)
-    else:
+        return False
+
+    def do_rest():
+        return True
+
+    def do_eat_food():
+        return game.handle_food_selection(player)
+
+    def do_wield_a_weapon():
+        return game.handle_weapon_selection(player)
+
+    def do_wear_armor():
+        return game.handle_armor_selection(player)
+
+    def do_put_on_a_ring():
+        return game.handle_ring_selection(player)
+
+    def do_inspect_item():
+        game.handle_inspect_item(game.get_player())
+        return False
+
+    def do_draw_help():
+        game.draw_help()
+        return False
+
+    def do_debug_mode():
+        game.identify_all_items()
+        return False
+
+    def do_none():
         game.update_player_position([player.x, player.y])
-        use_turn = False
+        return False
+
+    # アクション名→関数のマッピング
+    action_map = {
+        "move": do_move,
+        "attack": do_attack,
+        "descend_stairs": do_descend_stairs,
+        "rest": do_rest,
+        "eat_food": do_eat_food,
+        "wield_a_weapon": do_wield_a_weapon,
+        "wear_armor": do_wear_armor,
+        "put_on_a_ring": do_put_on_a_ring,
+        "inspect_item": do_inspect_item,
+        "draw_help": do_draw_help,
+        "debug_mode": do_debug_mode,
+        "none": do_none,
+    }
+
+    # アクション名で分岐
+    use_turn = action_map.get(action, do_none)()
 
     game.update_after_player_action()
 
     # enemy
     if use_turn:
         enemy_manager.update_enemies(game)
-        # TODO: add effect rings.
         player.update_turn()
         game.update_turn()
 

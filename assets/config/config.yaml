@@ -1,0 +1,10 @@
+keymap:
+  descend_stairs: [".", ">"]
+  rest: ["KP5"]
+  eat_food: ["e"]
+  wear_armor: ["W"]
+  wield_a_weapon: ["w"]
+  put_on_a_ring: ["P"]
+  debug_mode: ["@", "SHIFT+2"]
+  inspect_item: ["i"]
+  help: ["?", "SHIFT+h"]

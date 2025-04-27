@@ -2,6 +2,8 @@ import pygame
 import constants as const
 from enemy import Enemy
 import time
+from keymap_loader import load_keymap, get_action_for_key
+from assets_manager import AssetsManager
 
 
 class InputHandler:
@@ -15,11 +17,25 @@ class InputHandler:
         self.key_repeat_interval = 0.1
         self.action = None
 
+        self.assets_manager = AssetsManager()
+        directory = self.assets_manager.get_config_path()
+        config_path = directory / "config.yaml"
+        self.keymap = load_keymap(config_path)
+
     def handle_keys(self, player_pos):
+        if self.game.in_selection_mode:
+            return
         current_time = time.time()
         keys = pygame.key.get_pressed()
-        mods = pygame.key.get_mods()  # 現在押されている修飾キーを取得
+        mods = pygame.key.get_mods()
         self.dx, self.dy = 0, 0
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                action = get_action_for_key(event.key, mods, self.keymap)
+                if action:
+                    self.action = (action, player_pos[0], player_pos[1])
+                    return
 
         # 水平方向の移動
         if keys[pygame.K_LEFT] or keys[pygame.K_KP4]:
@@ -60,6 +76,12 @@ class InputHandler:
             self.action = ("wield_a_weapon", player_pos[0], player_pos[1])
         elif mods & pygame.KMOD_SHIFT and keys[pygame.K_p]:
             self.action = ("put_on_a_ring", player_pos[0], player_pos[1])
+        elif mods & pygame.KMOD_SHIFT and keys[pygame.K_2]:
+            self.action = ("debug_mode", player_pos[0], player_pos[1])
+        elif mods & pygame.KMOD_SHIFT and keys[pygame.K_h]:
+            self.action = ("draw_help", player_pos[0], player_pos[1])
+        elif keys[pygame.K_i]:
+            self.action = ("inspect_item", player_pos[0], player_pos[1])
         else:
             # 移動先の座標を計算
             new_x = player_pos[0] + self.dx

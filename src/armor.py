@@ -22,6 +22,7 @@ class Armor(Equipment):
         self.protection_bonus = data.get("protection_bonus", "0")
         self.avoidance_bonus = data.get("avoidance_bonus", "0")
         self.use_effect = data.get("use_effect", None)
+        self.flavor_text = data.get("flavor_text", "")
         self.display_name = self.undefined_name
 
     def attach_equip_info(self):
@@ -56,6 +57,17 @@ class Armor(Equipment):
     def unequip(self, character):
         super().unequip(character)
         self.appraisal()
+
+    def get_info(self):
+        info = []
+        info.append(f"Name: {self.name if self.is_defined else self.undefined_name}")
+        # info.append(f"種類: 防具")
+        info.append(f"armor: {self.armor}")
+        info.append(f"avd: {self.avoidance_bonus} ")
+        info.append(f"prt: {self.protection_bonus} ")
+        info.append(f"effect: {self.use_effect if self.use_effect else 'なし'}")
+        info.append(f"Description: {self.flavor_text}")
+        return "\n".join(info)
 
 
 class ArmorManager:

@@ -24,6 +24,7 @@ class Weapon(Equipment):
         self.dmg_bonus = data.get("dmg_bonus", "0")
         self.hit_bonus = data.get("hit_bonus", "0")
         self.use_effect = data.get("use_effect", None)
+        self.flavor_text = data.get("flavor_text", "")
         self.display_name = self.undefined_name
 
     def attach_equip_info(self):
@@ -64,6 +65,17 @@ class Weapon(Equipment):
         super().unequip(character)
         self.appraisal()
         # print("unequip ", self.display_name)
+
+    def get_info(self):
+        info = []
+        info.append(f"Name: {self.name if self.is_defined else self.undefined_name}")
+        # info.append(f"種類: 武器")
+        info.append(f"pow: {self.wielded_dice}")
+        info.append(f"bonus: {self.dmg_bonus}")
+        info.append(f"hit: {self.hit_bonus}")
+        info.append(f"effect: {self.use_effect if self.use_effect else 'なし'}")
+        info.append(f"Description: {self.flavor_text}")
+        return "\n".join(info)
 
 
 class WeaponManager:

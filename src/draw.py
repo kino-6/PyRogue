@@ -84,14 +84,17 @@ class Draw:
         self.draw_window(x, y, width, height, border_color, border_width, background_color)
 
         log_font = self.assets_manager.load_font(font, font_size)
-        log_y = y + border_width
+        log_y = y + border_width + 5
+        max_log_height = y + height
+
         for log, color in zip(logs, log_colors):
-            # log_color = getattr(const, f"PYGAME_COLOR_{color.upper()}", const.PYGAME_COLOR_WHITE)
-            log_text = log_font.render(log, True, color)
-            self.screen.blit(log_text, (x + 5, log_y + 5))
-            log_y += log_font.get_height()
-            if log_y + log_font.get_height() > y + height:
-                break
+            wrapped_lines = self.wrap_text(log, log_font, width - 10)  # 余白分引く
+            for line in wrapped_lines:
+                if log_y + log_font.get_height() > max_log_height:
+                    return  # ウィンドウを超えたら終了
+                log_text = log_font.render(line, True, color)
+                self.screen.blit(log_text, (x + 5, log_y))
+                log_y += log_font.get_height()
 
     def get_game_map_size(self):
         map_height = len(self.game_map.tiles)
@@ -106,11 +109,34 @@ class Draw:
     def draw_log_window(self, logs, n=const.DRAW_LOG_SIZE):
         x, y = self.get_game_map_size_px()
         window_width = x
-        window_height = const.WINDOW_SIZE_H - y
-        recent_logs = logs[-n:]  # 最新のn個のログを取得
 
-        log_colors = ["white"] * len(recent_logs)  # すべてのログ行を白色に設定
-        self.draw_window_with_logs(0, y, window_width, window_height, recent_logs, log_colors)
+        log_font = self.assets_manager.load_font(const.FONT_DEFAULT, const.LOG_FONT_SIZE)
+        font_height = log_font.get_height()
+        window_height = font_height * n + 10
+        window_y = const.WINDOW_SIZE_H - window_height
+
+        # 折り返しを考慮して、下からn行分だけを表示
+        wrapped_lines = []
+        log_colors = []
+        for log, color in zip(reversed(logs), reversed(["white"] * len(logs))):
+            lines = self.wrap_text(log, log_font, window_width - 10)
+            for line in reversed(lines):
+                wrapped_lines.insert(0, (line, color))
+                if len(wrapped_lines) >= n:
+                    break
+            if len(wrapped_lines) >= n:
+                break
+
+        # wrapped_linesは最新が下に来るように並んでいる
+        display_lines = wrapped_lines[-n:]
+
+        # 描画
+        self.draw_window(0, window_y, window_width, window_height)
+        log_y = window_y + 5
+        for line, color in display_lines:
+            log_text = log_font.render(line, True, color)
+            self.screen.blit(log_text, (5, log_y))
+            log_y += font_height
 
     def draw_status_window(self, status: Status):
         status_txt = status.generate_status_txt()
@@ -135,3 +161,30 @@ class Draw:
         self.draw_window_with_logs(
             x, status_window_height, window_width, window_height, inventory_txt, log_colors, font_size=16
         )
+
+    def wrap_text(self, text, font, max_width):
+        """テキストをmax_widthで折り返し、行リストで返す"""
+        words = text.split(' ')
+        lines = []
+        current_line = ""
+        for word in words:
+            test_line = current_line + (" " if current_line else "") + word
+            if font.size(test_line)[0] <= max_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        if current_line:
+            lines.append(current_line)
+        return lines
+
+    def draw_help_window(self, keymap):
+        help_lines = []
+        for action, keys in keymap.items():
+            key_names = ", ".join(keys)
+            # アクション名を日本語にしたい場合は辞書で対応
+            help_lines.append(f"{key_names}: {action}")
+        # 画面中央や適切な位置に help_lines を描画
+        # 例: draw_window_with_logs(0, 0, width, height, help_lines, ["white"]*len(help_lines))
+        self.draw_window_with_logs(50, 50, 500, 400, help_lines, ["white"]*len(help_lines))

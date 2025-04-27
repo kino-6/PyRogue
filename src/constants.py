@@ -14,7 +14,7 @@ FONT_SIZE = 26
 LOG_FONT_SIZE = 20  # 20
 LOG_WRAP_SIZE = 57
 
-DRAW_LOG_SIZE = 3
+DRAW_LOG_SIZE = 7
 DRAW_LOG_MARGIN = 20
 
 # https://www.pygame.org/docs/ref/color_list.html
