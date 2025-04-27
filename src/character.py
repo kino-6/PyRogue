@@ -131,8 +131,9 @@ class Character(Entity):
             self.equipped_armor = equipment
             if equipment:
                 self.status.armor = equipment.armor
-        else:
+        elif type == Ring:
             if position == "left":
+                if self.equipped_left_ring:
+                    self.equipped_left_ring.unequip(self)
                 self.equipped_left_ring = equipment
-            else:
-                self.equipped_right_ring = equipment
+                equipment.equip(self)

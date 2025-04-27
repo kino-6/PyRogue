@@ -115,6 +115,8 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         use_turn = game.handle_weapon_selection(player)
     elif action == "wear_armor":
         use_turn = game.handle_armor_selection(player)
+    elif action == "put_on_a_ring":
+        use_turn = game.handle_ring_selection(player)
     else:
         game.update_player_position([player.x, player.y])
         use_turn = False

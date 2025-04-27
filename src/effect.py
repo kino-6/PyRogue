@@ -9,10 +9,12 @@ class StrengthEffect(SpecialEffect):
     def apply_effect(self, character):
         character.damage_bonus += 5
         character.hit_bonus += 1
+        character.status.strength += 3
 
     def remove_effect(self, character):
         character.damage_bonus -= 5
         character.hit_bonus -= 1
+        character.status.strength -= 3
 
 class NoEffect(SpecialEffect):
     def apply_effect(self, character):

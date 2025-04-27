@@ -10,7 +10,7 @@ from enum import Enum
 from character import Character
 from weapon import Weapon, WeaponManager
 from armor import Armor, ArmorManager
-from ring import Ring
+from ring import Ring, RingManager
 
 
 class GameState(Enum):
@@ -180,7 +180,7 @@ class Game:
             self.add_entity(gold)
 
     def place_items_in_dungeon(self, current_level):
-        num_items = const.NUMTHINGS + 99
+        num_items = const.NUMTHINGS + 99  # 99 is debug
         for _ in range(num_items):
             entity_type_list = [Food, Weapon, Armor, Ring]
             entity_type = random.choice(entity_type_list)
@@ -191,6 +191,9 @@ class Game:
             elif entity_type == Armor:
                 am = ArmorManager()
                 entity = am.get_random_armor()
+            elif entity_type == Ring:
+                ring = RingManager()
+                entity = ring.get_random_ring()
             else:
                 entity = Food()
 
@@ -288,7 +291,6 @@ class Game:
 
         selected_armor = self.wait_for_item_selection(armor_items)
         if selected_armor:
-            # print(character.equipped_weapon)
             if character.equipped_armor:
                 character.equipped_armor.unequip(character)
             selected_armor.equip(character)
@@ -296,6 +298,23 @@ class Game:
             return True
         else:
             self.renew_logger_window("This is not armor.")
+            return False
+
+    def handle_ring_selection(self, character):
+        ring_items = character.get_inventory_with_key(Ring)
+        if not ring_items:
+            self.renew_logger_window("There is no ring.")
+            return False
+
+        self.renew_logger_window(f"Choose a ring, {', '.join(ring_items.keys())}")
+
+        selected_ring = self.wait_for_item_selection(ring_items)
+        if selected_ring:
+            character.equip(Ring, selected_ring, "left")
+            self.renew_logger_window(f"You are now wearing {selected_ring.display_name} on your left hand.")
+            return True
+        else:
+            self.renew_logger_window("This is not a ring.")
             return False
 
     def wait_for_item_selection(self, items):
@@ -310,9 +329,9 @@ class Game:
     def respawn_enemy(self):
         player = self.get_player()
 
-        if player.turn % 4 == 0:
-            respawn = random.randint(1, 6)
-            if respawn == 4:
+        if player.turn % const.RESPAWN_TURN == 0:
+            respawn = random.randint(const.RESPAWN_DICE_MIN, const.RESPAWN_DICE_MAX)
+            if respawn == 0:
                 self.enemy_manager.create_enemies(self, player.status.level, 1)
 
     def update_turn(self):

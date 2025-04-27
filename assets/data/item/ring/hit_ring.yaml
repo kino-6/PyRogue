@@ -4,7 +4,7 @@ color: "white"
 undefined_name: "ring?"
 armor: 0
 throw_dice: "1d2"
-use_effect: "add_strength"
+use_effect: "all_hit"
 protection_bonus: 0
 avoidance_bonus: 0
 dmg_bonus: 0

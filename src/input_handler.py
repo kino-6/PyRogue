@@ -58,6 +58,8 @@ class InputHandler:
             self.action = ("wear_armor", player_pos[0], player_pos[1])
         elif keys[pygame.K_w]:
             self.action = ("wield_a_weapon", player_pos[0], player_pos[1])
+        elif mods & pygame.KMOD_SHIFT and keys[pygame.K_p]:
+            self.action = ("put_on_a_ring", player_pos[0], player_pos[1])
         else:
             # 移動先の座標を計算
             new_x = player_pos[0] + self.dx
