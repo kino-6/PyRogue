@@ -64,7 +64,7 @@ def setup_game(screen):
     game = Game(game_map)
     game.set_logger(logger, log_messages)
 
-    drawer = Draw(screen, assets_manager, game_map)
+    drawer = Draw(screen, assets_manager, game_map, game)
     game.set_drawer(drawer)
 
     input_handler = InputHandler(const.GRID_MOVEMENT_SPEED, game, game_map)
@@ -78,6 +78,9 @@ def setup_game(screen):
     game.place_gold_in_dungeon(player.status.level)
     game.place_items_in_dungeon(player.status.level)
 
+    print("Game側 game_map id:", id(game_map))
+    print("Draw側 game_map id:", id(drawer.game_map))
+
     return game, drawer, input_handler, player, enemy_manager
 
 
@@ -86,7 +89,7 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
     input_handler.handle_keys([player.x, player.y])
 
     action, x, y = input_handler.action
-    print(f"{action=}")
+    # print(f"{action=}")
 
     # アクション名→処理関数のディスパッチテーブル
     def do_move():
@@ -137,7 +140,11 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
 
     def do_debug_mode():
         game.identify_all_items()
+        game.spawn_enemy_search_ring_at_player()
         return False
+
+    def do_drop_item():
+        return game.handle_drop_item(game.get_player())
 
     def do_none():
         game.update_player_position([player.x, player.y])
@@ -156,6 +163,7 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         "inspect_item": do_inspect_item,
         "draw_help": do_draw_help,
         "debug_mode": do_debug_mode,
+        "drop_item": do_drop_item,
         "none": do_none,
     }
 
@@ -172,15 +180,19 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
 
 
 def draw_game(screen, drawer, game, player):
-    # draw
-    screen.fill((0, 0, 0))
+    # 描画前
+    game.unmark_enemy_positions_explored()
+    game.mark_enemy_positions_explored()
     drawer.draw_game_map()
-    drawer.draw_entity(game.entity_positions.values())
+    drawer.draw_entity(list(game.entity_positions.values()))
     drawer.draw_log_window(log_messages)
     drawer.draw_status_window(player.status)
     drawer.draw_inventory_window(player)
 
     pygame.display.flip()
+
+    # 描画後（またはターン終了時）
+    # game.unmark_enemy_positions_explored()
 
 
 def main():

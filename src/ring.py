@@ -6,8 +6,8 @@ from effect import *
 class Ring(Equipment):
     def __init__(self, x=0, y=0, ring_data={}, is_cursed=False, effect=None):
         super().__init__("Ring", x, y, char="=", color="white")
+        self.is_defined = False
         self.load_data(ring_data)
-        self.effect = effect
 
     def load_data(self, data):
         self.name = data.get("name", "Unknown Ring")
@@ -28,7 +28,8 @@ class Ring(Equipment):
         self.effect_name = data.get("use_effect")
         if self.effect_name in EFFECT_MAP:
             self.effect = EFFECT_MAP[self.effect_name]()
-            # self.effect = EFFECT_MAP.get(self.effect_name, NoEffect)()
+        else:
+            self.effect = None
 
     def attach_equip_info(self):
         # [E] を装備時のみ display_name の先頭に付与
@@ -97,3 +98,10 @@ class RingManager:
         else:
             print("error select ring.")
             return None
+
+    def get_ring_by_effect(self, effect_name: str) -> Ring:
+        for data in self.ring_data_list:
+            if data.get("use_effect") == effect_name:
+                return Ring(ring_data=data)
+        print(f"error: no ring with effect {effect_name}")
+        return None

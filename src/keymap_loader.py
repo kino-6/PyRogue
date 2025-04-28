@@ -15,7 +15,7 @@ KEY_NAME_TO_CODE = {
     "@": pygame.K_AT,
     "KP5": pygame.K_KP5,
     "SHIFT+2": (pygame.K_2, pygame.KMOD_SHIFT),
-    # ... 必要に応じて追加 ...
+    "SHIFT+h": (pygame.K_h, pygame.KMOD_SHIFT),
 }
 
 def load_keymap(yaml_path):
@@ -27,7 +27,9 @@ def load_keymap(yaml_path):
 def get_action_for_key(key, mod, keymap):
     for action, keys in keymap.items():
         for k in keys:
-            code = KEY_NAME_TO_CODE[k]
+            code = KEY_NAME_TO_CODE.get(k)
+            if code is None:
+                continue  # 未定義キーはスキップ
             if isinstance(code, tuple):
                 if key == code[0] and mod & code[1]:
                     return action

@@ -5,7 +5,7 @@ WINDOW_SIZE_W = 1280
 
 GRID_SIZE = 20  # [px]
 GAMEMAP_WIDTH = 48  # [size]
-GAMEMAP_HEIGHT = 32  # [size]
+GAMEMAP_HEIGHT = 28  # [size]
 
 GRID_MOVEMENT_SPEED = 1  # [grid]
 

@@ -7,49 +7,74 @@ from inventory import Inventory
 
 
 class Draw:
-    def __init__(self, screen, assets_manager, game_map):
+    def __init__(self, screen, assets_manager, game_map, game):
         self.screen = screen
         self.assets_manager = assets_manager
         self.game_map_font = assets_manager.load_font(const.FONT_DEFAULT, const.FONT_SIZE)
         self.log_font = assets_manager.load_font(const.FONT_DEFAULT, const.LOG_FONT_SIZE)
         self.game_map = game_map
+        self.game = game
 
     def draw_game_map(self):
         width, height = self.get_game_map_size_px()
-        self.draw_window(0, 5, width, height)
+        log_font = self.assets_manager.load_font(const.FONT_DEFAULT, const.LOG_FONT_SIZE)
+        log_window_height = log_font.get_height() * const.DRAW_LOG_SIZE + 10
+
+        map_height = const.WINDOW_SIZE_H - log_window_height  # 画面全体の高さからログウィンドウ分を引く
+
+        self.draw_window(0, 5, width, map_height)
         for y in range(len(self.game_map.tiles)):
             for x in range(len(self.game_map.tiles[y])):
+                pixel_y = y * const.GRID_SIZE
+                if pixel_y + const.GRID_SIZE > map_height:
+                    continue
                 if self.game_map.explored[y][x]:
                     tile_char = self.game_map.get_tile(x, y)
                     tile_text = self.game_map_font.render(tile_char, True, "gray")
-                    self.screen.blit(tile_text, (x * const.GRID_SIZE, y * const.GRID_SIZE))
+                    self.screen.blit(tile_text, (x * const.GRID_SIZE, pixel_y))
 
     def draw_entity(self, entities_list):
+        items = []
+        enemies = []
         player = None
 
-        # すべてのエンティティを描画（プレイヤーを除く）
+        from player import Player
+        from enemy import Enemy
+        from item import Item
+
+        # すべてのエンティティを分類
         for entities in entities_list:
             for entity in entities:
                 if isinstance(entity, Player):
                     player = entity
+                elif isinstance(entity, Enemy):
+                    enemies.append(entity)
+                elif isinstance(entity, Item):
+                    items.append(entity)
                 else:
-                    self.draw_single_entity(entity)
+                    # その他のエンティティ（必要なら追加）
+                    pass
 
-        # プレイヤーが存在する場合、最後にプレイヤーを描画
+        # 1. アイテムを先に描画
+        for item in items:
+            self.draw_single_entity(item)
+        # 2. 敵を描画
+        for enemy in enemies:
+            self.draw_single_entity(enemy)
+        # 3. 最後にプレイヤーを描画
         if player:
-            self.draw_single_entity(player)
+            self.draw_single_entity(player, is_player=True)
 
-    def draw_single_entity(self, entity, is_player=False):
+    def draw_single_entity(self, entity, is_player=False, enemy_search_active=False, is_enemy=False):
         pixel_pos = (entity.x * const.GRID_SIZE, entity.y * const.GRID_SIZE)
-
         try:
-            if self.game_map.explored[entity.y][entity.x] or is_player:
-                # エンティティの領域を黒で塗りつぶす
+            # 敵サーチ中は敵だけは未踏破でも描画
+            if (self.game_map.explored[entity.y][entity.x] or is_player or (enemy_search_active and is_enemy)):
                 rect = pygame.Rect(pixel_pos, (const.GRID_SIZE, const.GRID_SIZE))
                 pygame.draw.rect(self.screen, const.PYGAME_COLOR_BLACK, rect)
 
-                # エンティティを描画
-                entity_text = self.game_map_font.render(entity.char, True, entity.color)
+                color = "yellow" if (enemy_search_active and is_enemy) else entity.color
+                entity_text = self.game_map_font.render(entity.char, True, color)
                 self.screen.blit(entity_text, pixel_pos)
         except Exception as e:
             print("FAIL: ", entity, entity.x, entity.y, entity.color, "e: ", e)
@@ -113,6 +138,8 @@ class Draw:
         log_font = self.assets_manager.load_font(const.FONT_DEFAULT, const.LOG_FONT_SIZE)
         font_height = log_font.get_height()
         window_height = font_height * n + 10
+
+        # 画面全体の高さからログウィンドウの高さを引いた位置に表示
         window_y = const.WINDOW_SIZE_H - window_height
 
         # 折り返しを考慮して、下からn行分だけを表示

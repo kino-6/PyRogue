@@ -76,6 +76,8 @@ class InputHandler:
             self.action = ("wield_a_weapon", player_pos[0], player_pos[1])
         elif mods & pygame.KMOD_SHIFT and keys[pygame.K_p]:
             self.action = ("put_on_a_ring", player_pos[0], player_pos[1])
+        elif keys[pygame.K_d]:
+            self.action = ("drop_item", player_pos[0], player_pos[1])
         elif mods & pygame.KMOD_SHIFT and keys[pygame.K_2]:
             self.action = ("debug_mode", player_pos[0], player_pos[1])
         elif mods & pygame.KMOD_SHIFT and keys[pygame.K_h]:

@@ -5,6 +5,12 @@ class SpecialEffect:
     def remove_effect(self, character):
         pass
 
+    def on_turn(self, character):
+        pass
+
+    def on_attack(self, character, target):
+        pass
+
 class StrengthEffect(SpecialEffect):
     def apply_effect(self, character):
         character.damage_bonus += 5
@@ -23,8 +29,53 @@ class NoEffect(SpecialEffect):
     def remove_effect(self, character):
         pass
 
+class AllHitEffect(SpecialEffect):
+    def apply_effect(self, character):
+        character.hit_bonus += 99  # 例
+    def remove_effect(self, character):
+        character.hit_bonus -= 99
+
+class RegenerationEffect(SpecialEffect):
+    def on_turn(self, character):
+        character.heal_damage(1)  # 例：毎ターン1回復
+
+class ShockWaveEffect(SpecialEffect):
+    def on_attack(self, character, target):
+        # 全体攻撃などの処理
+        pass
+
+class SeeInvisibleEffect(SpecialEffect):
+    def apply_effect(self, character):
+        character.can_see_invisible = True
+    def remove_effect(self, character):
+        character.can_see_invisible = False
+
+class ProtectionEffect(SpecialEffect):
+    def apply_effect(self, character):
+        character.status.armor += 4
+    def remove_effect(self, character):
+        character.status.armor -= 4
+
+class KeepHealthEffect(SpecialEffect):
+    def on_take_damage(self, character, damage):
+        # HPが0になるダメージを受けた時に1残すなど
+        pass
+
+class EnemySearchEffect(SpecialEffect):
+    def apply_effect(self, character):
+        character.enemy_search_active = True
+
+    def remove_effect(self, character):
+        character.enemy_search_active = False
 
 EFFECT_MAP = {
     "no_effect": NoEffect,
     "add_strength": StrengthEffect,
+    "all_hit": AllHitEffect,
+    "regeneration": RegenerationEffect,
+    "shock_wave": ShockWaveEffect,
+    "see_invisible": SeeInvisibleEffect,
+    "protection": ProtectionEffect,
+    "keep_health": KeepHealthEffect,
+    "enemy_search": EnemySearchEffect,
 }

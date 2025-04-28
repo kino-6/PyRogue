@@ -23,6 +23,7 @@ class Character(Entity):
         self.equipped_armor = None
         self.equipped_right_ring = None
         self.equipped_left_ring = None
+        self.enemy_search_active = False
 
     def get_looped_element(self, idx, looped_list):
         looped_idx = idx % len(looped_list)

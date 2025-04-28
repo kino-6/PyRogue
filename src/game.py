@@ -26,6 +26,7 @@ class Game:
         self.waiting_for_food_selection = False
         self.entity_positions = {}  # キーは座標タプル (x, y)、値はエンティティ
         self.in_selection_mode = False
+        self.temp_enemy_explored = set()  # 一時的に探索済みにしたマス
 
     def set_drawer(self, drawer):
         self.drawer = drawer
@@ -430,3 +431,56 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     waiting = False
             pygame.time.wait(10)
+
+    def spawn_enemy_search_ring_at_player(self):
+        from ring import RingManager
+        player = self.get_player()
+        ring_manager = RingManager()
+        ring = ring_manager.get_ring_by_effect("enemy_search")
+        if ring:
+            ring.x = player.x
+            ring.y = player.y
+            self.add_entity(ring)
+            self.renew_logger_window("足元に enemy_search リングを生成しました。")
+        else:
+            self.renew_logger_window("enemy_search リングの生成に失敗しました。")
+
+    def mark_enemy_positions_explored(self):
+        """enemy_search_active時、敵のいるマスを一時的に探索済みにする"""
+        player = self.get_player()
+        if not player or not getattr(player, "enemy_search_active", False):
+            return
+        from enemy import Enemy
+        for pos, entities in self.entity_positions.items():
+            for entity in entities:
+                if entity.__class__.__name__ == "Enemy":
+                    x, y = entity.x, entity.y
+                    if not self.game_map.explored[y][x]:
+                        self.game_map.explored[y][x] = True
+                        self.temp_enemy_explored.add((x, y))
+
+    def unmark_enemy_positions_explored(self):
+        """一時的に探索済みにしたマスを元に戻す"""
+        for x, y in self.temp_enemy_explored:
+            self.game_map.explored[y][x] = False
+        self.temp_enemy_explored.clear()
+
+    def handle_drop_item(self, character):
+        items = character.inventory.items
+        if not items:
+            self.renew_logger_window("There are no items in your inventory.")
+            return False
+        self.renew_logger_window("Press the key of the item you wish to discard.")
+        selected_item = self.wait_for_item_selection({k: v for k, v in zip("abcdefghijklmnopqrstuvwxyz", items)})
+        if selected_item:
+            # インベントリから削除
+            character.inventory.remove_item(selected_item)
+            # 足元に配置
+            selected_item.x = character.x
+            selected_item.y = character.y
+            self.add_entity(selected_item)
+            self.renew_logger_window(f"{selected_item.display_name} on the ground.")
+            return True
+        else:
+            self.renew_logger_window("Item was not selected.")
+            return False
