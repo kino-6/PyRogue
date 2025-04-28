@@ -64,7 +64,7 @@ class InputHandler:
             self.dx, self.dy = self.movement_speed, self.movement_speed
 
         # actions
-        if keys[pygame.K_PERIOD] or keys[pygame.K_GREATER]:
+        if keys[pygame.K_PERIOD] or keys[pygame.K_LESS]:
             self.action = ("descend_stairs", player_pos[0], player_pos[1])
         elif keys[pygame.K_KP5]:
             self.action = ("rest", player_pos[0], player_pos[1])
@@ -80,10 +80,18 @@ class InputHandler:
             self.action = ("drop_item", player_pos[0], player_pos[1])
         elif mods & pygame.KMOD_SHIFT and keys[pygame.K_2]:
             self.action = ("debug_mode", player_pos[0], player_pos[1])
+        elif keys[pygame.K_F12]:
+            self.action = ("console_mode", player_pos[0], player_pos[1])
         elif mods & pygame.KMOD_SHIFT and keys[pygame.K_h]:
             self.action = ("draw_help", player_pos[0], player_pos[1])
         elif keys[pygame.K_i]:
             self.action = ("inspect_item", player_pos[0], player_pos[1])
+        elif keys[pygame.K_F1]:
+            self.action = ("save_game", player_pos[0], player_pos[1])
+        elif keys[pygame.K_F2]:
+            self.action = ("load_game", player_pos[0], player_pos[1])
+        elif keys[pygame.K_COMMA] and mods & pygame.KMOD_SHIFT:
+            self.action = ("descend_stairs", player_pos[0], player_pos[1])
         else:
             # 移動先の座標を計算
             new_x = player_pos[0] + self.dx

@@ -7,3 +7,4 @@ exp_level: 1
 armor: 7
 max_hp: 8
 color: "white"
+chase_power: 3  # それなりに追跡

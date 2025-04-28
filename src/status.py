@@ -13,6 +13,7 @@ class Status:
         self.armor = data["armor"]
         self.color = data["color"]
         self.exp_level = data["exp_level"]
+        self.chase_power = data.get("chase_power", 0)
 
         # calc
         self.current_hp = self.max_hp
@@ -25,10 +26,10 @@ class Status:
         self.defense_power = self.armor
         self.based_hit_rate = const.BASED_HIT_RATE
 
-    def generate_status_txt(self):
+    def generate_status_txt(self, x=0, y=0):
         """generate main UI status txt list"""
         status_txt = [
-            f"Name: {self.name}",
+            f"Name: {self.name}, ({x}, {y})",
             f"Level: {self.level}",
             f"Gold: {self.gold}",
             f"Hp: {self.current_hp}/{self.max_hp}",

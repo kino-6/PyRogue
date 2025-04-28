@@ -18,7 +18,7 @@ class Food(Item):
         directory = assets_manager.get_item_path("food")
         food_path = directory / "food.yaml"
 
-        with open(food_path, "r") as file:
+        with open(food_path, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
             self.name = data.get("name", "Food")
             self.char = data.get("char", ":")

@@ -4,6 +4,7 @@ from status import Status
 from player import Player
 from character import Character
 from inventory import Inventory
+from stair import Stairs
 
 
 class Draw:
@@ -37,6 +38,7 @@ class Draw:
         items = []
         enemies = []
         player = None
+        stairs = []
 
         from player import Player
         from enemy import Enemy
@@ -51,6 +53,8 @@ class Draw:
                     enemies.append(entity)
                 elif isinstance(entity, Item):
                     items.append(entity)
+                elif isinstance(entity, Stairs):
+                    stairs.append(entity)
                 else:
                     # その他のエンティティ（必要なら追加）
                     pass
@@ -61,7 +65,12 @@ class Draw:
         # 2. 敵を描画
         for enemy in enemies:
             self.draw_single_entity(enemy)
-        # 3. 最後にプレイヤーを描画
+            if player and enemy.can_see_player(self.game):
+                self.draw_attention_mark(enemy)
+        # 3. 階段を描画
+        for stair in stairs:
+            self.draw_single_entity(stair)
+        # 4. 最後にプレイヤーを描画
         if player:
             self.draw_single_entity(player, is_player=True)
 
@@ -166,7 +175,8 @@ class Draw:
             log_y += font_height
 
     def draw_status_window(self, status: Status):
-        status_txt = status.generate_status_txt()
+        x, y = self.game.get_player_position()
+        status_txt = status.generate_status_txt(x, y)
         log_colors = ["white"] * len(status_txt)
 
         x, y = self.get_game_map_size_px()
@@ -215,3 +225,25 @@ class Draw:
         # 画面中央や適切な位置に help_lines を描画
         # 例: draw_window_with_logs(0, 0, width, height, help_lines, ["white"]*len(help_lines))
         self.draw_window_with_logs(50, 50, 500, 400, help_lines, ["white"]*len(help_lines))
+
+    def draw_attention_mark(self, entity):
+        from constants import GRID_SIZE, PYGAME_COLOR_RED, FONT_DEFAULT
+        # フォントサイズを大きめに
+        font_size = max(14, GRID_SIZE // 2)
+        # 太字フォントを取得（pygame.font.Fontはbold引数がないのでset_boldを使う）
+        font = self.assets_manager.load_font(FONT_DEFAULT, font_size)
+        font.set_bold(True)
+        mark_text = font.render("!", True, PYGAME_COLOR_RED)
+        # 右上隅の座標
+        circle_radius = max(mark_text.get_width(), mark_text.get_height()) // 2 + 2
+        # 右上隅の中心座標
+        center_x = entity.x * GRID_SIZE + GRID_SIZE - circle_radius
+        center_y = entity.y * GRID_SIZE + circle_radius
+        center_x += GRID_SIZE // 2
+        center_y -= GRID_SIZE // 2
+        # 白い〇を描画
+        pygame.draw.circle(self.screen, (255, 255, 255), (center_x, center_y), circle_radius)
+        # !マークを〇の中心に重ねて描画
+        mark_x = center_x - mark_text.get_width() // 2
+        mark_y = center_y - mark_text.get_height() // 2
+        self.screen.blit(mark_text, (mark_x, mark_y))

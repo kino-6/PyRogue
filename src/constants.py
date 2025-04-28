@@ -20,6 +20,7 @@ DRAW_LOG_MARGIN = 20
 # https://www.pygame.org/docs/ref/color_list.html
 PYGAME_COLOR_WHITE = (255, 255, 255)
 PYGAME_COLOR_BLACK = (0, 0, 0)
+PYGAME_COLOR_RED = (255, 0, 0)
 
 PYGAME_FPS = 60
 PYGAME_ONE_TURN_WAIT_MS = 30  # [ms]

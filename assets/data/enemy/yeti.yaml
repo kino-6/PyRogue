@@ -7,3 +7,4 @@ exp_level: 4
 armor: 6
 max_hp: 32
 color: "white"
+chase_power: 1  # ほぼ追跡しない

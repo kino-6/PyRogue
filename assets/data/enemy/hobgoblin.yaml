@@ -7,3 +7,4 @@ exp_level: 1
 armor: 5
 max_hp: 8
 color: "lightsalmon2"
+chase_power: 1  # ほぼ追跡しない

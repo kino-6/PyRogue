@@ -183,7 +183,7 @@ class GameMap:
         walkable_tiles = []
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):
-                if tile == ".":  # '.' は移動可能な床を表す
+                if tile in [".", "+", "#"]:
                     walkable_tiles.append((x, y))
         return walkable_tiles
 

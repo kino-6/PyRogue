@@ -14,7 +14,7 @@ class GameInitializer:
 
     def setup_player(self):
         yaml_file = self.assets_manager.get_chara_path("player.yaml")
-        with open(yaml_file, "r") as file:
+        with open(yaml_file, "r", encoding="utf-8") as file:
             status_data = yaml.safe_load(file)
         player_status = Status(status_data)
         player = Player(0, 0, player_status, self.logger)

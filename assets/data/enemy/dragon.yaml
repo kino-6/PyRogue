@@ -7,3 +7,4 @@ exp_level: 10
 armor: -1
 max_hp: 80
 color: "red"
+chase_power: 8  # かなりしつこく追跡

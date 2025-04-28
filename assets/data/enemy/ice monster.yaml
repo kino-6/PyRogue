@@ -7,3 +7,4 @@ exp_level: 1
 armor: 9
 max_hp: 8
 color: "dodgerblue"
+chase_power: 1  # ほぼ追跡しない

@@ -1,5 +1,5 @@
 keymap:
-  descend_stairs: [".", ">"]
+  descend_stairs: [".", "<"]
   rest: ["KP5"]
   eat_food: ["e"]
   wear_armor: ["W"]
@@ -8,3 +8,6 @@ keymap:
   debug_mode: ["@", "SHIFT+2"]
   inspect_item: ["i"]
   help: ["?", "SHIFT+h"]
+  save_game: ["F1"]
+  load_game: ["F2"]
+  console_mode: ["F12"]

@@ -8,6 +8,7 @@ import yaml
 import glob
 import math
 import random
+from collections import deque
 
 
 class Enemy(Character):
@@ -15,10 +16,18 @@ class Enemy(Character):
         super().__init__(x, y, status)
         self.behavior = RandomWalkBehavior()
         self.attack_range = 1
+        # yamlからchase_powerを取得（なければデフォルト0）
+        self.chase_power = getattr(status, "chase_power", 0)
+        self.chase_turns = 0
 
     def update(self, game: Game):
         if self.can_see_player(game):
             self.behavior = ChasePlayerBehavior()
+            # 追跡ターンをchase_powerベースでリセット
+            self.chase_turns = self.chase_power + random.randint(0, 2)
+        elif self.chase_turns > 0:
+            self.behavior = ChasePlayerBehavior()
+            self.chase_turns -= 1
         else:
             self.behavior = RandomWalkBehavior()
 
@@ -40,26 +49,20 @@ class Enemy(Character):
     def can_see_player(self, game):
         # 敵が現在どのタイプのセルにいるかを判断
         current_room_id = game.game_map.room_info[self.y][self.x]
-
-        # entity_positionsからプレイヤーの位置を取得
         player_position = game.get_player_position()
         if player_position is None:
             return False
 
-        if current_room_id is not None:
-            # 敵が部屋にいる場合、部屋内全体が視界になる
-            player_room_id = game.game_map.room_info[player_position[1]][player_position[0]]
+        player_room_id = game.game_map.room_info[player_position[1]][player_position[0]]
+
+        if current_room_id is not None and player_room_id is not None:
+            # 両者とも部屋内
             return player_room_id == current_room_id
         else:
-            # 敵が通路にいる場合、視界を広げる
+            # 通路や部屋の外の場合、距離3以内なら見える
             dx, dy = player_position[0] - self.x, player_position[1] - self.y
             distance = math.sqrt(dx**2 + dy**2)
-
-            # 敵がドアにいる場合、視界を部屋内に拡張する
-            if game.game_map.get_tile(self.x, self.y) == "+":
-                return distance <= 2
-            else:
-                return distance <= 1
+            return distance <= 3
 
 
 class EnemyManager:
@@ -72,7 +75,7 @@ class EnemyManager:
 
         enemy_list = []
         for file_path in directorys:
-            with open(file_path, "r") as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 enemy_data = yaml.safe_load(file)
                 enemy_list.append(enemy_data)
         return enemy_list
@@ -128,23 +131,20 @@ class EnemyBehavior:
 
 class ChasePlayerBehavior(EnemyBehavior):
     def determine_action(self, enemy: Enemy, game: Game):
-        # プレイヤーを取得
         player = game.get_player()
+        player_pos = (player.x, player.y)
+        enemy_pos = (enemy.x, enemy.y)
+        next_step = find_next_step(game.game_map, enemy_pos, player_pos)
 
-        # プレイヤーの位置に向かって移動するロジック
+        # 距離を計算
         dx, dy = player.x - enemy.x, player.y - enemy.y
         distance = math.sqrt(dx**2 + dy**2)
 
-        # 敵がプレイヤーに近づく
-        if distance > 0:  # プレイヤーと敵が同じ位置にいないことを確認
-            dx, dy = round(dx / distance), round(dy / distance)
-            new_x, new_y = int(enemy.x + dx), int(enemy.y + dy)  # 新しい位置を計算
-
-            # 新しい位置が移動可能であることを確認
-            if game.is_walkable(new_x, new_y) and new_x != player.x and new_y != player.y:
+        if next_step != enemy_pos:
+            new_x, new_y = next_step
+            if not (new_x == player.x and new_y == player.y):
                 return {"type": "move", "new_x": new_x, "new_y": new_y}
 
-        # プレイヤーが一定範囲内にいる場合に攻撃
         if distance <= enemy.attack_range:
             return {"type": "attack", "target": player}
 
@@ -171,3 +171,26 @@ class RandomWalkBehavior:
         if game.is_walkable(new_x, new_y):
             return {"type": "move", "new_x": new_x, "new_y": new_y}
         return None
+
+
+def find_next_step(game_map, start, goal):
+    width, height = game_map.width, game_map.height
+    visited = set()
+    queue = deque()
+    queue.append((start, []))
+
+    while queue:
+        (x, y), path = queue.popleft()
+        if (x, y) == goal:
+            if path:
+                return path[0]  # 最初の一歩を返す
+            else:
+                return (x, y)  # すでにゴール
+
+        for dx, dy in [(-1,0),(1,0),(0,-1),(0,1), (-1,-1), (1,-1), (-1,1), (1,1)]:
+            nx, ny = x + dx, y + dy
+            if (0 <= nx < width and 0 <= ny < height and
+                game_map.is_walkable(nx, ny) and (nx, ny) not in visited):
+                visited.add((nx, ny))
+                queue.append(((nx, ny), path + [(nx, ny)]))
+    return start  # ゴールに到達できない場合はその場に留まる

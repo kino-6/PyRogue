@@ -21,6 +21,7 @@ import yaml
 import threading
 import time
 from game_initializer import GameInitializer
+import pickle
 
 
 # TODO
@@ -141,10 +142,36 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
     def do_debug_mode():
         game.identify_all_items()
         game.spawn_enemy_search_ring_at_player()
+        game.explore_around_stairs()
+        return False
+
+    def do_console_mode():
+        game.console_mode = True
+        game.console_input = ""
         return False
 
     def do_drop_item():
         return game.handle_drop_item(game.get_player())
+
+    def do_save_game():
+        game.save_game()
+        return False
+
+    def do_load_game():
+        global game, player
+        loaded = Game.load_game()
+        if loaded is not None:
+            game = loaded
+            # 参照の再セット
+            game.set_drawer(drawer)
+            game.set_input_handler(input_handler)
+            game.set_enemy_manager(enemy_manager)
+            game.set_logger(logger, log_messages)
+            player = game.get_player()
+            game.renew_logger_window("Game loaded.")
+        else:
+            game.renew_logger_window("Fail load.")
+        return False
 
     def do_none():
         game.update_player_position([player.x, player.y])
@@ -163,7 +190,10 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         "inspect_item": do_inspect_item,
         "draw_help": do_draw_help,
         "debug_mode": do_debug_mode,
+        "console_mode": do_console_mode,
         "drop_item": do_drop_item,
+        "save_game": do_save_game,
+        "load_game": do_load_game,
         "none": do_none,
     }
 
@@ -213,6 +243,41 @@ def main():
 
     pygame.quit()
     sys.exit()
+
+
+def save_all(filename="saveall.pkl"):
+    globals_dict = {
+        "game": game,
+        "player": player,
+        "enemy_manager": enemy_manager,
+        "input_handler": input_handler,
+        "drawer": drawer,
+        "logger": logger,
+        "log_messages": log_messages,
+        # 必要なものをすべて
+    }
+    with open(filename, "wb") as f:
+        pickle.dump(globals_dict, f)
+    print("全体をセーブしました")
+
+
+def load_all(filename="saveall.pkl"):
+    global game, player, enemy_manager, input_handler, drawer, logger, log_messages
+    with open(filename, "rb") as f:
+        globals_dict = pickle.load(f)
+    game = globals_dict["game"]
+    player = globals_dict["player"]
+    enemy_manager = globals_dict["enemy_manager"]
+    input_handler = globals_dict["input_handler"]
+    drawer = globals_dict["drawer"]
+    logger = globals_dict["logger"]
+    log_messages = globals_dict["log_messages"]
+    # 必要なら再セット
+    game.set_drawer(drawer)
+    game.set_input_handler(input_handler)
+    game.set_enemy_manager(enemy_manager)
+    game.set_logger(logger, log_messages)
+    print("全体をロードしました")
 
 
 if __name__ == "__main__":

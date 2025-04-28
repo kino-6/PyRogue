@@ -5,6 +5,7 @@ import pygame
 KEY_NAME_TO_CODE = {
     ".": pygame.K_PERIOD,
     ">": pygame.K_GREATER,
+    "<": pygame.K_LESS,
     "e": pygame.K_e,
     "w": pygame.K_w,
     "W": (pygame.K_w, pygame.KMOD_SHIFT),
@@ -16,6 +17,8 @@ KEY_NAME_TO_CODE = {
     "KP5": pygame.K_KP5,
     "SHIFT+2": (pygame.K_2, pygame.KMOD_SHIFT),
     "SHIFT+h": (pygame.K_h, pygame.KMOD_SHIFT),
+    "F1": pygame.K_F1,
+    "F2": pygame.K_F2,
 }
 
 def load_keymap(yaml_path):

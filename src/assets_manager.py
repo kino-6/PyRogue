@@ -44,7 +44,7 @@ class AssetsManager:
 
         data_list = []
         for file_path in file_paths:
-            with open(file_path, "r") as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 data = yaml.safe_load(file)
                 data_list.append(data)
         # print(f"len(data_list) = {len(data_list)}")

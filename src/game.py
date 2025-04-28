@@ -11,6 +11,7 @@ from character import Character
 from weapon import Weapon, WeaponManager
 from armor import Armor, ArmorManager
 from ring import Ring, RingManager
+import pickle
 
 
 class GameState(Enum):
@@ -27,6 +28,8 @@ class Game:
         self.entity_positions = {}  # キーは座標タプル (x, y)、値はエンティティ
         self.in_selection_mode = False
         self.temp_enemy_explored = set()  # 一時的に探索済みにしたマス
+        self.console_mode = False
+        self.console_input = ""
 
     def set_drawer(self, drawer):
         self.drawer = drawer
@@ -420,6 +423,7 @@ class Game:
 
         # set items
         self.place_items_in_dungeon(player.status.level)
+        # self.explore_around_stairs()
 
     def draw_help(self):
         keymap = self.input_handler.keymap
@@ -441,9 +445,9 @@ class Game:
             ring.x = player.x
             ring.y = player.y
             self.add_entity(ring)
-            self.renew_logger_window("足元に enemy_search リングを生成しました。")
+            self.renew_logger_window("Generated enemy_search ring at the foot.")
         else:
-            self.renew_logger_window("enemy_search リングの生成に失敗しました。")
+            self.renew_logger_window("Failed to generate enemy_search ring.")
 
     def mark_enemy_positions_explored(self):
         """enemy_search_active時、敵のいるマスを一時的に探索済みにする"""
@@ -473,6 +477,11 @@ class Game:
         self.renew_logger_window("Press the key of the item you wish to discard.")
         selected_item = self.wait_for_item_selection({k: v for k, v in zip("abcdefghijklmnopqrstuvwxyz", items)})
         if selected_item:
+            # 足元にすでにアイテムがあるかチェック
+            entities_at_feet = self.get_entities_at_position(character.x, character.y)
+            if any(isinstance(e, Item) for e in entities_at_feet):
+                self.renew_logger_window("There is already an item at your feet. Cannot be placed.")
+                return False
             # インベントリから削除
             character.inventory.remove_item(selected_item)
             # 足元に配置
@@ -484,3 +493,157 @@ class Game:
         else:
             self.renew_logger_window("Item was not selected.")
             return False
+
+    def get_save_data(self):
+        player = self.get_player()
+        # プレイヤーのインベントリや装備もdict化
+        player_data = {
+            "x": player.x,
+            "y": player.y,
+            "status": player.status.__dict__,  # Statusがシンプルな属性のみならOK
+            "inventory": [item.__dict__ for item in player.inventory.items],
+            "equipped_weapon": player.equipped_weapon.__dict__ if player.equipped_weapon else None,
+            "equipped_armor": player.equipped_armor.__dict__ if player.equipped_armor else None,
+            "equipped_left_ring": player.equipped_left_ring.__dict__ if player.equipped_left_ring else None,
+            "equipped_right_ring": player.equipped_right_ring.__dict__ if player.equipped_right_ring else None,
+            "turn": player.turn,
+            # 必要に応じて他の属性も
+        }
+
+        # マップ情報
+        map_data = {
+            "tiles": self.game_map.tiles,
+            "explored": self.game_map.explored,
+            "room_info": self.game_map.room_info,
+            # 必要に応じて他のマップ属性も
+        }
+
+        # エンティティ情報
+        entities_data = []
+        for pos, entities in self.entity_positions.items():
+            for entity in entities:
+                entities_data.append({
+                    "class": entity.__class__.__name__,
+                    "x": entity.x,
+                    "y": entity.y,
+                    "data": entity.__dict__,  # 必要に応じてフィルタ
+                })
+
+        save_data = {
+            "player": player_data,
+            "game_map": map_data,
+            "entities": entities_data,
+            "player_position": self.player_position,
+            "explored_rooms": list(self.explored_rooms),
+            "level": getattr(player.status, "level", 1),
+            "turn": getattr(player, "turn", 0),
+            "log_messages": self.log_messages,
+            "state": self.state.name if hasattr(self.state, "name") else self.state,
+            # 必要に応じて他の属性も
+        }
+        return save_data
+
+    def set_save_data(self, data):
+        map_data = data["game_map"]
+        game_map = GameMap()
+        game_map.tiles = map_data["tiles"]
+        game_map.room_info = map_data["room_info"]
+
+        # exploredの型・サイズを保証
+        loaded_explored = map_data["explored"]
+        if (len(loaded_explored) == game_map.height and
+            all(len(row) == game_map.width for row in loaded_explored)):
+            game_map.explored = loaded_explored
+        else:
+            # サイズが合わない場合は初期化し直す
+            game_map.explored = [[False for _ in range(game_map.width)] for _ in range(game_map.height)]
+            # 必要なら部分的に復元
+
+        self.game_map = game_map
+        self.player_position = data.get("player_position", self.player_position)
+        self.entity_positions = data.get("entity_positions", self.entity_positions)
+        self.explored_rooms = set(data.get("explored_rooms", []))
+
+        print(len(game_map.explored), len(game_map.explored[0]))
+        print(game_map.width, game_map.height)
+
+    def save_game(self, filename="savegame.pkl"):
+        with open(filename, "wb") as f:
+            pickle.dump(self, f)
+        self.renew_logger_window("ゲームをセーブしました (F1)。")
+
+    @staticmethod
+    def load_game(filename="savegame.pkl"):
+        with open(filename, "rb") as f:
+            game = pickle.load(f)
+        return game
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # pickleできない属性を除外
+        for key in ["drawer", "logger", "input_handler", "enemy_manager"]:
+            if key in state:
+                del state[key]
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        # 除外した属性はロード後に再セット（main.pyで）
+
+    def explore_around_stairs(self):
+        from stair import Stairs
+        # 全エンティティから階段を探す
+        for pos, entities in self.entity_positions.items():
+            for entity in entities:
+                if isinstance(entity, Stairs):
+                    x, y = entity.x, entity.y
+                    # 階段の周囲1マスを探索済みに
+                    for dx in [-1, 0, 1]:
+                        for dy in [-1, 0, 1]:
+                            nx, ny = x + dx, y + dy
+                            if 0 <= nx < self.game_map.width and 0 <= ny < self.game_map.height:
+                                self.game_map.explored[ny][nx] = True
+                    return  # 複数階段があっても最初の1つだけでOK
+
+    def get_entity_at(self, x, y):
+        # その座標にいるエンティティを返す
+        return [e for e in self.entity_positions.get((x, y), []) if e.x == x and e.y == y]
+
+    def handle_console_event(self, event, player):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                self.handle_console_command(self.console_input, player)
+                self.console_input = ""
+                self.console_mode = False
+            elif event.key == pygame.K_ESCAPE:
+                self.console_input = ""
+                self.console_mode = False
+            elif event.key == pygame.K_BACKSPACE:
+                self.console_input = self.console_input[:-1]
+            else:
+                if event.unicode.isprintable():
+                    self.console_input += event.unicode
+
+    def handle_console_command(self, command, player):
+        tokens = command.strip().split()
+        if not tokens:
+            return
+        if tokens[0] == "add_item" and len(tokens) > 1:
+            from item_manager import ItemManager
+            item_id = tokens[1]
+            item = ItemManager().create_item_by_id(item_id)
+            if item:
+                player.inventory.append(item)
+                self.renew_logger_window(f"{item.name} をインベントリに追加しました")
+            else:
+                self.renew_logger_window("そのIDのアイテムは存在しません")
+        elif tokens[0] == "list_items":
+            from item_manager import ItemManager
+            ids = ItemManager().get_all_item_ids()
+            self.renew_logger_window("利用可能なアイテムID: " + ", ".join(ids))
+        # 必要に応じて他のコマンドも追加
+
+    def draw_console_input(self, screen):
+        font = pygame.font.SysFont(None, 24)
+        input_surface = font.render(":" + self.console_input, True, (255, 255, 255), (0, 0, 0))
+        screen.blit(input_surface, (10, const.WINDOW_SIZE_H - 30))
