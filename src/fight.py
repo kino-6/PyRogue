@@ -107,12 +107,20 @@ class Fight:
 
     def handle_death(self, defender: Character):
         # 敵が死亡した場合の処理
-        self.logger.info(f"{defender.status.name} is killed!")
         if isinstance(defender, Enemy):
+            # 経験値の計算と付与
+            exp_gain = defender.calculate_exp_reward()
+            if self.player:
+                self.player.gain_experience(exp_gain)
+                self.logger.info(f"{defender.status.name} is killed! Gained {exp_gain} experience!")
+            
             # 敵をenemiesリストから安全に削除
             if defender in self.enemies:
                 self.enemies.remove(defender)
                 self.game.remove_entity(defender)
+        else:
+            # プレイヤーの場合
+            self.logger.info(f"{defender.status.name} is killed!")
 
     def handle_hit(self, defender: Character):
         # 攻撃がヒットしたが、敵が死亡しなかった場合の処理

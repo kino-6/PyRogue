@@ -27,6 +27,7 @@ class Character(Entity):
         self.damage_bonus = 0
         self.hit_bonus = 0
         self.effects = []  # エフェクトのリストを保持
+        self.is_player = False  # デフォルトはFalse
 
     def get_looped_element(self, idx, looped_list):
         looped_idx = idx % len(looped_list)
@@ -74,7 +75,10 @@ class Character(Entity):
 
     def take_damage(self, damage):
         self.status.current_hp -= damage
-        return self.status.current_hp <= 0
+        is_dead = self.status.current_hp <= 0
+        if is_dead:
+            self.add_logger(f"{self.status.name} was defeated!")
+        return is_dead
 
     def heal_damage(self, amount):
         # HPを回復し、最大HPを超えないようにする
@@ -123,8 +127,81 @@ class Character(Entity):
             else:
                 self.add_logger(f"{self.status.name} can't pick up {item.display_name}, my bags full.")
 
+    def calculate_exp_to_next_level(self):
+        """次のレベルに必要な経験値を計算"""
+        base_exp = const.BASE_EXP
+        level_factor = const.LEVEL_FACTOR
+        return int(base_exp * (level_factor ** (self.status.exp_level - 1)))
+
     def gain_experience(self, value):
+        """経験値獲得処理"""
         self.status.exp += value
+        self.status.next_exp = self.calculate_exp_to_next_level()
+        
+        # レベルアップチェック
+        while self.status.exp >= self.calculate_exp_to_next_level():
+            self.level_up()
+
+    def level_up(self):
+        """レベルアップ処理"""
+        import random
+        
+        # 経験値の処理
+        self.status.exp -= self.calculate_exp_to_next_level()
+        self.status.exp_level += 1
+
+        # ステータス上昇値の計算
+        hp_gain = random.randint(1, 8)  # 1d8のHP増加
+        attack_gain = random.randint(1, 2)  # 1-2の攻撃力増加
+        # defense_gain = random.randint(0, 1)  # 0-1の防御力増加
+
+        # ステータスの更新
+        self.status.max_hp += hp_gain
+        self.status.current_hp += hp_gain
+        self.status.attack_power += attack_gain
+        # self.status.defense_power += defense_gain
+
+        # ログ出力
+        self.add_logger(f"{self.status.name} has been raised to level {self.status.level}!")
+        self.add_logger(f"MAX HP +{hp_gain}")
+        self.add_logger(f"Attack +{attack_gain}")
+
+    def level_down(self):
+        """レベルダウン処理"""
+        import random
+
+        if self.status.exp_level > 1:  # レベル1未満にはならない
+            self.status.exp_level -= 1
+
+            # ステータス減少値の計算
+            hp_loss = random.randint(1, 8)  # 1d8のHP減少
+            attack_loss = random.randint(1, 2)  # 1-2の攻撃力減少
+            defense_loss = random.randint(0, 1)  # 0-1の防御力減少
+
+            # ステータスの更新（最低値を下回らないように）
+            self.status.max_hp = max(1, self.status.max_hp - hp_loss)
+            self.status.current_hp = min(self.status.current_hp, self.status.max_hp)
+            self.status.attack_power = max(1, self.status.attack_power - attack_loss)
+            # self.status.defense_power = max(0, self.status.defense_power - defense_loss)
+
+            # 経験値のリセット
+            self.status.exp = 0
+
+            # ログ出力
+            self.add_logger(f"{self.status.name}is the level down...")
+            self.add_logger(f"MAX HP -{hp_loss}")
+            self.add_logger(f"Attack -{attack_loss}")
+
+    def get_status_info(self):
+        """ステータス情報の取得"""
+        info = []
+        info.append(f"Name: {self.status.name}")
+        info.append(f"Level: {self.status.level}")
+        info.append(f"HP: {self.status.current_hp}/{self.status.max_hp}")
+        info.append(f"EXP: {self.status.exp}/{self.calculate_exp_to_next_level()}")
+        info.append(f"Attack: {self.status.attack_power}")
+        info.append(f"Defense: {self.status.defense_power}")
+        return info
 
     def use_item(self, item):
         item.use(self)
@@ -157,3 +234,63 @@ class Character(Entity):
         """エフェクトを除去"""
         if effect in self.effects:
             self.effects.remove(effect)
+
+    def die(self, game):
+        """キャラクターが死亡時の処理"""
+        if self.is_player:
+            # プレイヤーの死亡処理
+            self.status.current_hp = 0
+            self.add_logger("You crawled back from the brink of death...")
+            self.effects.clear()
+            game.is_player_turn = True
+        else:  # 敵の場合
+            # 経験値の計算と付与
+            exp_gain = self.calculate_exp_reward()
+            player = game.get_player()
+            if player:
+                player.gain_experience(exp_gain)
+                self.add_logger(f"{self.status.name} was defeated!")
+            
+            # 敵の削除処理
+            game.remove_entity(self)
+
+    def calculate_exp_reward(self):
+        """経験値報酬の計算"""
+        import random
+        base_exp = self.status.level * 10  # 基本経験値
+        variance = random.randint(-5, 5)    # ±5の変動
+        bonus = 0
+        
+        # ボーナス経験値の計算（オプション）
+        if hasattr(self.status, 'is_boss') and self.status.is_boss:
+            bonus = 50  # ボス敵の場合のボーナス
+        elif hasattr(self.status, 'is_rare') and self.status.is_rare:
+            bonus = 30  # レア敵の場合のボーナス
+            
+        return max(1, base_exp + variance + bonus)  # 最低1は保証
+
+    def on_death(self):
+        """プレイヤーの死亡時の処理"""
+        self.add_logger(f"{self.status.name} is out of power...")
+        self.level_down()  # レベルダウン
+        
+        # HP回復（最大HPの半分）
+        self.status.current_hp = max(1, self.status.max_hp // 2)
+        
+        # その他のペナルティ
+        self.status.exp = 0  # 経験値リセット
+        self.sate_hunger(-const.STOMACHSIZE // 2)  # 満腹度半減
+        
+        self.add_logger("You crawled back from the brink of death...")
+
+    def handle_player_death(self):
+        """ゲームクラスで実装するプレイヤー死亡時の処理"""
+        # プレイヤーの位置を安全な場所に移動
+        self.teleport_entity(self.player)
+        
+        # 状態異常をクリア
+        self.player.effects.clear()
+        
+        # ゲーム状態の更新
+        self.is_player_turn = True
+        self.update_fov()

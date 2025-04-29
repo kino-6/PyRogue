@@ -6,6 +6,7 @@ KEY_NAME_TO_CODE = {
     ".": pygame.K_PERIOD,
     ">": pygame.K_GREATER,
     "<": pygame.K_LESS,
+    "KP_PERIOD": pygame.K_KP_PERIOD,  # テンキーのピリオド
     "e": pygame.K_e,
     "w": pygame.K_w,
     "W": (pygame.K_w, pygame.KMOD_SHIFT),

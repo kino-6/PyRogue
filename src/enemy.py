@@ -39,12 +39,50 @@ class Enemy(Character):
                 game.update_entity_position(self, action["new_x"], action["new_y"])
             elif action["type"] == "attack":
                 # 攻撃アクションを適用
-                self.attack(action["target"])
+                self.attack(action["target"], game)
 
-    def attack(self, target):
-        # 攻撃ロジックを実装
+    def attack(self, target, game):
+        """攻撃処理"""
         damage = self.status.attack_power
-        target.status.current_hp -= damage
+        if target.take_damage(damage):  # take_damageがTrueを返したら死亡
+            target.die(game)  # gameオブジェクトを渡す
+
+    def calculate_exp_reward(self):
+        """経験値報酬の計算"""
+        base_exp = self.status.level * 10  # 基本経験値
+        variance = random.randint(-5, 5)    # ±5の変動
+        bonus = 0
+        
+        # 追跡力の高い敵はより多くの経験値
+        chase_bonus = int(self.chase_power * 2)
+        
+        # ボーナス経験値の計算
+        if hasattr(self.status, 'is_boss') and self.status.is_boss:
+            bonus = 50  # ボス敵の場合のボーナス
+        elif hasattr(self.status, 'is_rare') and self.status.is_rare:
+            bonus = 30  # レア敵の場合のボーナス
+            
+        return max(1, base_exp + variance + bonus + chase_bonus)  # 最低1は保証
+
+    def die(self, game):
+        """敵の死亡処理"""
+        # 経験値の付与
+        exp_gain = self.calculate_exp_reward()
+        player = game.get_player()
+        if player:
+            player.gain_experience(exp_gain)
+            self.add_logger(f"Defeated {self.status.name}! Gained {exp_gain} experience!")
+        
+        # アイテムドロップ処理（オプション）
+        self.drop_items(game)
+        
+        # 敵の削除
+        game.remove_entity(self)
+
+    def drop_items(self, game):
+        """アイテムドロップ処理"""
+        # ここにアイテムドロップのロジックを実装
+        pass
 
     def can_see_player(self, game):
         # 敵が現在どのタイプのセルにいるかを判断

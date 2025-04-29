@@ -413,7 +413,7 @@ class Game:
         player.status.level += 1
 
         # プレイヤーを除くエンティティを再生成
-        enemy_manager.create_enemies(self, player.status.level, 5)
+        enemy_manager.create_enemies(self, player.status.level, const.INITIAL_SPAWN_ENEMY_NUM)
 
         # 新しい階段を生成して追加
         stair = Stairs()

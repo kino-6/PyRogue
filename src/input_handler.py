@@ -64,7 +64,7 @@ class InputHandler:
             self.dx, self.dy = self.movement_speed, self.movement_speed
 
         # actions
-        if keys[pygame.K_PERIOD] or keys[pygame.K_LESS]:
+        if keys[pygame.K_PERIOD] or keys[pygame.K_LESS] or keys[pygame.K_KP_PERIOD]:
             self.action = ("descend_stairs", player_pos[0], player_pos[1])
         elif keys[pygame.K_KP5]:
             self.action = ("rest", player_pos[0], player_pos[1])

@@ -266,7 +266,7 @@ class Draw:
 
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
+                    if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
                         selected_id = input_id
                         running = False
                     elif event.key == pygame.K_ESCAPE:

@@ -21,7 +21,6 @@ class Status:
         self.next_exp = 10
         self.food_left = const.STOMACHSIZE
 
-        # todo + wired wepon
         self.attack_power = self.strength
         self.defense_power = self.armor
         self.based_hit_rate = const.BASED_HIT_RATE
@@ -30,13 +29,13 @@ class Status:
         """generate main UI status txt list"""
         status_txt = [
             f"Name: {self.name}, ({x}, {y})",
-            f"Level: {self.level}",
+            f"Floor: {self.level}",
             f"Gold: {self.gold}",
             f"Hp: {self.current_hp}/{self.max_hp}",
             f"Str: {self.strength}",
             f"Ac: {self.armor}",
             f"ExpLv: {self.exp_level}",
-            f"Exp: {self.exp}",
+            f"Exp: {self.exp} / {self.next_exp}",
             f"Food: {int((self.food_left / const.STOMACHSIZE)*100)} %",
         ]
         return status_txt

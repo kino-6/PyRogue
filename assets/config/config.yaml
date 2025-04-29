@@ -1,5 +1,5 @@
 keymap:
-  descend_stairs: [".", "<"]
+  descend_stairs: [".", "<", "KP_PERIOD"]
   rest: ["KP5"]
   eat_food: ["e"]
   wear_armor: ["W"]
