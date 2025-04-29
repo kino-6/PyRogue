@@ -2,6 +2,8 @@ from equipment import Equipment
 from assets_manager import AssetsManager
 import random
 from effect import *
+from typing import List
+
 
 class Ring(Equipment):
     def __init__(self, x=0, y=0, ring_data={}, is_cursed=False, effect=None):
@@ -10,6 +12,7 @@ class Ring(Equipment):
         self.load_data(ring_data)
 
     def load_data(self, data):
+        self.type = data.get("type", "Ring")
         self.name = data.get("name", "Unknown Ring")
         self.char = data.get("char", "=")
         self.color = data.get("color", "white")
@@ -71,6 +74,11 @@ class Ring(Equipment):
             self.effect.remove_effect(character)
         self.not_appraisal_at_equip()
 
+    def __repr__(self):
+        message = f"{self.name}, {self.char}, {self.effect_name}"
+        message += f"{self.hit_bonus}/{self.avoidance_bonus}/{self.protection_bonus}"
+        return message
+
     def get_info(self):
         info = []
         info.append(f"Name: {self.name if self.is_defined else self.undefined_name_CONST}")
@@ -90,6 +98,14 @@ class RingManager:
     def load_ring_data_from_directory(self) -> None:
         assets_manager = AssetsManager()
         self.ring_data_list = assets_manager.get_item_data_list("ring")
+        self.ring_instance_list = self.get_ring_instance_list()
+
+    def get_ring_instance_list(self) -> List[Ring]:
+        ring_instance_list = []
+        for ring_data in self.ring_data_list:
+            ring_instance = Ring(ring_data=ring_data)
+            ring_instance_list.append(ring_instance)
+        return ring_instance_list
 
     def get_random_ring(self) -> Ring:
         if self.ring_data_list:
@@ -104,4 +120,18 @@ class RingManager:
             if data.get("use_effect") == effect_name:
                 return Ring(ring_data=data)
         print(f"error: no ring with effect {effect_name}")
+        return None
+
+    def get_ring_by_partial_name(self, name: str) -> Ring:
+        """
+        名前が部分一致する指輪を返す
+        Args:
+            name: 検索する指輪の名前（部分一致）
+        Returns:
+            Ring: 見つかった指輪のインスタンス、見つからない場合はNone
+        """
+        for data in self.ring_data_list:
+            if name.lower() in data.get("name", "").lower():  # 大文字小文字を区別しない
+                return Ring(ring_data=data)
+        print(f"error: no ring matching name '{name}'")
         return None

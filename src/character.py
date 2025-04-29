@@ -24,6 +24,9 @@ class Character(Entity):
         self.equipped_right_ring = None
         self.equipped_left_ring = None
         self.enemy_search_active = False
+        self.damage_bonus = 0
+        self.hit_bonus = 0
+        self.effects = []  # エフェクトのリストを保持
 
     def get_looped_element(self, idx, looped_list):
         looped_idx = idx % len(looped_list)
@@ -83,6 +86,7 @@ class Character(Entity):
         self.turn += 1
         self.update_nutrition()
         self.natural_recovery()
+        self.update_on_turn()
 
     def sate_hunger(self, nutrition_change):
         self.status.food_left = max(0, min(self.status.food_left + nutrition_change, const.STOMACHSIZE))
@@ -138,3 +142,18 @@ class Character(Entity):
                     self.equipped_left_ring.unequip(self)
                 self.equipped_left_ring = equipment
                 equipment.equip(self)
+
+    def update_on_turn(self):
+        """キャラクターのターン開始時の処理"""
+        # 全てのエフェクトのon_turnを実行
+        for effect in self.effects:
+            effect.on_turn(self)
+
+    def add_effect(self, effect):
+        """エフェクトを追加"""
+        self.effects.append(effect)
+
+    def remove_effect(self, effect):
+        """エフェクトを除去"""
+        if effect in self.effects:
+            self.effects.remove(effect)

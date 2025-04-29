@@ -12,6 +12,8 @@ from weapon import Weapon, WeaponManager
 from armor import Armor, ArmorManager
 from ring import Ring, RingManager
 import pickle
+import yaml
+import os
 
 
 class GameState(Enum):

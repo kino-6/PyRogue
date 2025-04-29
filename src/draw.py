@@ -220,11 +220,65 @@ class Draw:
         help_lines = []
         for action, keys in keymap.items():
             key_names = ", ".join(keys)
-            # アクション名を日本語にしたい場合は辞書で対応
             help_lines.append(f"{key_names}: {action}")
-        # 画面中央や適切な位置に help_lines を描画
-        # 例: draw_window_with_logs(0, 0, width, height, help_lines, ["white"]*len(help_lines))
         self.draw_window_with_logs(50, 50, 500, 400, help_lines, ["white"]*len(help_lines))
+
+    def draw_item_list_window(self):
+        from item_manager import ItemManager
+        player = self.game.get_player()
+
+        item_manager = ItemManager()
+        item_list = item_manager.get_all_items_with_unique_id()
+        selected_id = self.draw_item_list_window_and_select_id(item_list)
+        if selected_id:
+            # 4文字IDで一致するアイテムを探す
+            for entry in item_list:
+                if entry["id"][:4] == selected_id:
+                    item = entry["item"]
+                    player.inventory.add_item(item)
+                    print(f"{item.name} added to inventory")
+                    break
+            else:
+                print("No items with that ID were found.")
+        else:
+            print("Canceled.")
+
+    def draw_item_list_window_and_select_id(self, item_list, id_length=4):
+        """
+        item_list: List[Dict] 例: [{"id": "xxxx", "item": <Item>}, ...]
+        ユーザーがIDを入力し、Enterで決定するまで待つ。
+        入力されたID（str）を返す。キャンセル時はNone。
+        """
+        input_id = ""
+        selected_id = None
+        running = True
+
+        while running:
+            # ウィンドウ描画
+            lines = [f"{entry['id'][:id_length]}: {entry['item'].type}: {getattr(entry['item'], 'name', str(entry['item']))}" for entry in item_list]
+            self.draw_window_with_logs(50, 50, 500, 400, lines, ["white"] * len(lines))
+
+            # 入力欄の描画
+            font = pygame.font.SysFont(None, 24)
+            input_surface = font.render("ID: " + input_id, True, (255, 255, 255), (0, 0, 0))
+            self.screen.blit(input_surface, (60, 460))
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        selected_id = input_id
+                        running = False
+                    elif event.key == pygame.K_ESCAPE:
+                        selected_id = None
+                        running = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        input_id = input_id[:-1]
+                    else:
+                        if event.unicode.isprintable():
+                            input_id += event.unicode
+            pygame.time.wait(10)
+        return selected_id
 
     def draw_attention_mark(self, entity):
         from constants import GRID_SIZE, PYGAME_COLOR_RED, FONT_DEFAULT

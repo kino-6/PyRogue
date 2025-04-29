@@ -134,19 +134,21 @@ class ChasePlayerBehavior(EnemyBehavior):
         player = game.get_player()
         player_pos = (player.x, player.y)
         enemy_pos = (enemy.x, enemy.y)
+
+        # プレイヤーとの距離を計算（ユークリッド距離）
+        dx = abs(player.x - enemy.x)
+        dy = abs(player.y - enemy.y)
+        
+        # 攻撃範囲内（隣接8マス）にいる場合は攻撃
+        if dx <= enemy.attack_range and dy <= enemy.attack_range:
+            return {"type": "attack", "target": player}
+            
+        # 攻撃範囲外の場合は追跡
         next_step = find_next_step(game.game_map, enemy_pos, player_pos)
-
-        # 距離を計算
-        dx, dy = player.x - enemy.x, player.y - enemy.y
-        distance = math.sqrt(dx**2 + dy**2)
-
         if next_step != enemy_pos:
             new_x, new_y = next_step
-            if not (new_x == player.x and new_y == player.y):
+            if not (new_x == player.x and new_y == player.y):  # プレイヤーの位置でない場合のみ移動
                 return {"type": "move", "new_x": new_x, "new_y": new_y}
-
-        if distance <= enemy.attack_range:
-            return {"type": "attack", "target": player}
 
         return None
 

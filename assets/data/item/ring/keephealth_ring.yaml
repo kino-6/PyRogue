@@ -1,3 +1,4 @@
+type: "Ring"
 name: "keep health ring"
 char: "="
 color: "white"

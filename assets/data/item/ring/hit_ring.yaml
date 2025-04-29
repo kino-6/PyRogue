@@ -1,3 +1,4 @@
+type: "Ring"
 name: "hit ring"
 char: "="
 color: "white"

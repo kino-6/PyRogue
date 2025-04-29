@@ -1,6 +1,7 @@
 from equipment import Equipment
 from assets_manager import AssetsManager
 import random
+from typing import List
 
 
 class Armor(Equipment):
@@ -13,6 +14,7 @@ class Armor(Equipment):
             print("Warning: Empty Armor data loaded.", data)
             return
 
+        self.type = data.get("type", "Armor")
         self.name = data.get("name", "Unknown weapon")
         self.char = data.get("char", ")")
         self.color = data.get("color", "white")
@@ -58,6 +60,10 @@ class Armor(Equipment):
         super().unequip(character)
         self.appraisal()
 
+    def __repr__(self):
+        message = f"{self.name}, {self.char}, {self.armor} {self.avoidance_bonus}/{self.protection_bonus}"
+        return message
+
     def get_info(self):
         info = []
         info.append(f"Name: {self.name if self.is_defined else self.undefined_name}")
@@ -77,6 +83,14 @@ class ArmorManager:
     def load_armor_data_from_directory(self) -> None:
         assets_manager = AssetsManager()
         self.armor_data_list = assets_manager.get_item_data_list("armor")
+        self.armor_instance_list = self.get_armor_instance_list()
+
+    def get_armor_instance_list(self) -> List[Armor]:
+        armor_instance_list = []
+        for armor_data in self.armor_data_list:
+            armor_instance = Armor(armor_data=armor_data)
+            armor_instance_list.append(armor_instance)
+        return armor_instance_list
 
     def get_random_armor(self) -> Armor:
         if self.armor_data_list:
@@ -84,3 +98,13 @@ class ArmorManager:
             return Armor(armor_data=armor_data)
         else:
             return None
+
+    def get_armor_by_partial_name(self, name: str) -> Armor:
+        """
+        名前が部分一致する防具を返す
+        """
+        for data in self.armor_data_list:
+            if name.lower() in data.get("name", "").lower():
+                return Armor(armor_data=data)
+        print(f"error: no armor matching name '{name}'")
+        return None

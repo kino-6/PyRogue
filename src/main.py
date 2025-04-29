@@ -146,8 +146,7 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         return False
 
     def do_console_mode():
-        game.console_mode = True
-        game.console_input = ""
+        drawer.draw_item_list_window()
         return False
 
     def do_drop_item():

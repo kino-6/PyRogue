@@ -1,6 +1,7 @@
 import yaml
 import random
 import glob
+from typing import List
 from equipment import Equipment
 from assets_manager import AssetsManager
 
@@ -15,6 +16,7 @@ class Weapon(Equipment):
             print("Warning: Empty weapon data loaded.", data)
             return
 
+        self.type = data.get("type", "Weapon")
         self.name = data.get("name", "Unknown weapon")
         self.char = data.get("char", ")")
         self.color = data.get("color", "white")
@@ -73,7 +75,7 @@ class Weapon(Equipment):
         info.append(f"pow: {self.wielded_dice}")
         info.append(f"bonus: {self.dmg_bonus}")
         info.append(f"hit: {self.hit_bonus}")
-        info.append(f"effect: {self.use_effect if self.use_effect else 'なし'}")
+        info.append(f"effect: {self.use_effect if self.use_effect else 'None'}")
         info.append(f"Description: {self.flavor_text}")
         return "\n".join(info)
 
@@ -85,6 +87,14 @@ class WeaponManager:
     def load_weapon_data_from_directory(self) -> None:
         assets_manager = AssetsManager()
         self.weapon_data_list = assets_manager.get_item_data_list("weapon")
+        self.weapon_instance_list = self.get_weapon_instance_list()
+
+    def get_weapon_instance_list(self) -> List[Weapon]:
+        weapon_instance_list = []
+        for weapon_data in self.weapon_data_list:
+            weapon_instance = Weapon(weapon_data=weapon_data)
+            weapon_instance_list.append(weapon_instance)
+        return weapon_instance_list
 
     def get_random_weapon(self) -> Weapon:
         if self.weapon_data_list:
@@ -92,3 +102,13 @@ class WeaponManager:
             return Weapon(weapon_data=weapon_data)
         else:
             return None
+
+    def get_weapon_by_partial_name(self, name: str) -> Weapon:
+        """
+        名前が部分一致する武器を返す
+        """
+        for data in self.weapon_data_list:
+            if name.lower() in data.get("name", "").lower():
+                return Weapon(weapon_data=data)
+        print(f"error: no weapon matching name '{name}'")
+        return None

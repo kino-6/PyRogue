@@ -36,8 +36,24 @@ class AllHitEffect(SpecialEffect):
         character.hit_bonus -= 99
 
 class RegenerationEffect(SpecialEffect):
+    def __init__(self, heal_amount=1):
+        super().__init__()
+        self.heal_amount = heal_amount
+
+    def apply_effect(self, character):
+        """エフェクト付与時の処理"""
+        super().apply_effect(character)
+        character.add_effect(self)  # キャラクターにエフェクトを登録
+
+    def remove_effect(self, character):
+        """エフェクト解除時の処理"""
+        super().remove_effect(character)
+        character.remove_effect(self)  # キャラクターからエフェクトを削除
+
     def on_turn(self, character):
-        character.heal_damage(1)  # 例：毎ターン1回復
+        """ターン毎の処理"""
+        character.heal_damage(self.heal_amount)
+
 
 class ShockWaveEffect(SpecialEffect):
     def on_attack(self, character, target):
