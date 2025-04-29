@@ -82,8 +82,8 @@ class GameInitializer:
         initial_player = self.new_player()
         
         # 既存のプレイヤーのステータスと装備を初期状態で上書き
-        player.status = initial_player.status
-        player.inventory = initial_player.inventory  # インベントリごと置き換え
+        player.status = initial_player.status.copy()  # コピーを使用
+        player.inventory = initial_player.inventory
         player.equipped_weapon = initial_player.equipped_weapon
         player.equipped_armor = initial_player.equipped_armor
         player.equipped_left_ring = initial_player.equipped_left_ring

@@ -212,19 +212,19 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
 
 
 def draw_game(screen, drawer, game, player):
+    # 常にgameから最新のプレイヤーインスタンスを取得
+    current_player = game.get_player()
+    
     # 描画前
     game.unmark_enemy_positions_explored()
     game.mark_enemy_positions_explored()
     drawer.draw_game_map()
     drawer.draw_entity(list(game.entity_positions.values()))
     drawer.draw_log_window(log_messages)
-    drawer.draw_status_window(player.status)
-    drawer.draw_inventory_window(player)
+    drawer.draw_status_window(current_player.status)  # 最新のプレイヤーインスタンスを使用
+    drawer.draw_inventory_window(current_player)
 
     pygame.display.flip()
-
-    # 描画後（またはターン終了時）
-    # game.unmark_enemy_positions_explored()
 
 
 def main():
@@ -237,8 +237,8 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        update_game(game, input_handler, player, enemy_manager, drawer)
-        draw_game(screen, drawer, game, player)
+        update_game(game, input_handler, game.get_player(), enemy_manager, drawer)  # playerではなくgame.get_player()を使用
+        draw_game(screen, drawer, game, game.get_player())  # playerではなくgame.get_player()を使用
 
         pygame.time.delay(const.PYGAME_ONE_TURN_WAIT_MS)
         clock.tick(const.PYGAME_FPS)

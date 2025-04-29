@@ -75,10 +75,11 @@ class Character(Entity):
         return self.hp > 0
 
     def take_damage(self, damage):
-        self.status.current_hp -= damage
         is_dead = self.status.current_hp <= 0
         if is_dead:
             self.add_logger(f"{self.status.name} was defeated!")
+        # 計算継続可能ならそのまま
+        self.status.current_hp -= damage
         return is_dead
 
     def heal_damage(self, amount):

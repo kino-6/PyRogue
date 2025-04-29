@@ -11,6 +11,7 @@ from character import Character
 from weapon import Weapon, WeaponManager
 from armor import Armor, ArmorManager
 from ring import Ring, RingManager
+from player import Player
 import pickle
 import yaml
 import os
@@ -677,7 +678,7 @@ class Game:
         input_surface = font.render(":" + self.console_input, True, (255, 255, 255), (0, 0, 0))
         screen.blit(input_surface, (10, const.WINDOW_SIZE_H - 30))
 
-    def restart_game(self, old_player):
+    def restart_game(self, old_player: Player):
         """ゲームオーバー時にレベル1から再開する"""
         # プレイヤーを除くすべてのエンティティを削除
         self.entity_positions = {}
@@ -688,15 +689,17 @@ class Game:
         # プレイヤーの状態を初期化
         from game_initializer import GameInitializer
         initializer = GameInitializer(self, self.logger)
-        initializer.reset_player_status(old_player)  # 新しいメソッド
+        initializer.reset_player_status(old_player)
 
         # プレイヤーを新しい位置に配置
         self.teleport_entity(old_player)
         self.add_entity(old_player)
 
+        # レベルを0に設定（enter_new_dungeonで1になる）
         old_player.status.level = 0
+        
+        # 新しいダンジョンに入る
         self.enter_new_dungeon(self.enemy_manager)
-
         self.identify_all_items()
 
         # ログメッセージをクリア
