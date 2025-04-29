@@ -8,6 +8,7 @@ from armor import ArmorManager
 from ring import RingManager
 from item import Item
 from food import Food
+from potion import PotionManager
 
 
 class ItemManager:
@@ -35,6 +36,12 @@ class ItemManager:
             item_id = str(uuid.uuid4())
             items_with_id.append({"id": item_id, "item": armor})
 
+        # ポーションの追加
+        pm = PotionManager()
+        for potion in pm.potion_instance_list:
+            item_id = str(uuid.uuid4())
+            items_with_id.append({"id": item_id, "item": potion})
+
         return items_with_id
 
     def create_item_by_id(self, item_id: str) -> Item:
@@ -59,3 +66,11 @@ class ItemManager:
         """新しい食料アイテムを生成する"""
         from food import Food
         return Food()  # 内部でランダムな食料が生成される
+
+    def create_potion(self, potion_id):
+        """指定されたIDのポーションを生成する"""
+        from potion import Potion
+        potion_data = self.load_item_data("potion", potion_id)
+        if potion_data:
+            return Potion(potion_data=potion_data)
+        return None

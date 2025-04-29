@@ -146,6 +146,8 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         game.identify_all_items()
         game.spawn_enemy_search_ring_at_player()
         game.explore_around_stairs()
+        game.get_player().heal_damage(65535)
+        game.get_player().gain_experience(300)
         return False
 
     def do_console_mode():
@@ -179,6 +181,9 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         game.update_player_position([player.x, player.y])
         return False
 
+    def do_quaff_potion():
+        return game.handle_potion_selection(player)
+
     # アクション名→関数のマッピング
     action_map = {
         "move": do_move,
@@ -197,6 +202,7 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         "save_game": do_save_game,
         "load_game": do_load_game,
         "none": do_none,
+        "quaff_potion": do_quaff_potion,
     }
 
     # アクション名で分岐
@@ -209,6 +215,11 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         enemy_manager.update_enemies(game)
         player.update_turn()
         game.update_turn()
+
+    # 暫定処置
+    if game._restart_game:
+        player.status.current_hp = player.status.max_hp
+        game._restart_game = False
 
 
 def draw_game(screen, drawer, game, player):

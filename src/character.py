@@ -77,6 +77,7 @@ class Character(Entity):
     def take_damage(self, damage):
         is_dead = self.status.current_hp <= 0
         if is_dead:
+            self.status.current_hp = 0
             self.add_logger(f"{self.status.name} was defeated!")
         # 計算継続可能ならそのまま
         self.status.current_hp -= damage
@@ -144,12 +145,13 @@ class Character(Entity):
         while self.status.exp >= self.calculate_exp_to_next_level():
             self.level_up()
 
-    def level_up(self):
+    def level_up(self, debug=False):
         """レベルアップ処理"""
         import random
         
         # 経験値の処理
-        self.status.exp -= self.calculate_exp_to_next_level()
+        if debug is False:
+            self.status.exp -= self.calculate_exp_to_next_level()
         self.status.exp_level += 1
 
         # ステータス上昇値の計算

@@ -15,6 +15,7 @@ from player import Player
 import pickle
 import yaml
 import os
+from potion import Potion, PotionManager
 
 
 class GameState(Enum):
@@ -32,6 +33,7 @@ class Game:
         self.in_selection_mode = False
         self.temp_enemy_explored = set()  # 一時的に探索済みにしたマス
         self.console_mode = False
+        self._restart_game = False
         self.console_input = ""
 
     def set_drawer(self, drawer):
@@ -73,18 +75,21 @@ class Game:
                 break  # ゴールドを1つだけ拾う
 
     def update_entity_position(self, entity, old_pos=None):
-        """エンティティの位置を更新"""
+        """エンティティの位置を更新する"""
+        new_pos = (entity.x, entity.y)
+        
+        # 古い位置が指定されている場合、そこからエンティティを削除
         if old_pos:
             old_x, old_y = old_pos
-            # 古い位置からエンティティを削除
             if (old_x, old_y) in self.entity_positions:
-                self.entity_positions[(old_x, old_y)].remove(entity)
-                # リストが空になったら辞書からキーを削除
+                # エンティティが存在する場合のみ削除を試みる
+                if entity in self.entity_positions[(old_x, old_y)]:
+                    self.entity_positions[(old_x, old_y)].remove(entity)
+                # リストが空になった場合、キーを削除
                 if not self.entity_positions[(old_x, old_y)]:
                     del self.entity_positions[(old_x, old_y)]
         
         # 新しい位置にエンティティを追加
-        new_pos = (entity.x, entity.y)
         if new_pos not in self.entity_positions:
             self.entity_positions[new_pos] = []
         if entity not in self.entity_positions[new_pos]:
@@ -203,7 +208,7 @@ class Game:
     def place_items_in_dungeon(self, current_level):
         num_items = const.NUMTHINGS + 99  # 99 is debug
         for _ in range(num_items):
-            entity_type_list = [Food, Weapon, Armor, Ring]
+            entity_type_list = [Food, Weapon, Armor, Ring, Potion]  # ポーションを追加
             entity_type = random.choice(entity_type_list)
 
             if entity_type == Weapon:
@@ -215,10 +220,12 @@ class Game:
             elif entity_type == Ring:
                 ring = RingManager()
                 entity = ring.get_random_ring()
+            elif entity_type == Potion:  # ポーションの生成を追加
+                pm = PotionManager()
+                entity = pm.get_random_potion()
             else:
                 entity = Food()
 
-            # print(type(entity), entity_type)
             self.teleport_entity(entity)
             self.add_entity(entity)
 
@@ -428,18 +435,28 @@ class Game:
 
     def enter_new_dungeon(self, enemy_manager):
         """新しいダンジョンへ移動する"""
-        # プレイヤーを退避（既存のプレイヤーを使用）
+        # プレイヤーを取得
         player = self.get_player()
+        if player is None:
+            print("Error: No player found in enter_new_dungeon")
+            return
         
-        # エンティティの位置情報を初期化
+        # エンティティの位置情報を初期化（プレイヤーを除く）
+        old_player_pos = None
+        if player:
+            old_player_pos = (player.x, player.y)
+        
         self.entity_positions = {}
+        
+        # プレイヤーを再配置
+        if old_player_pos:
+            self.add_entity(player)
         
         # 新しいダンジョンを生成
         self.game_map.init_explored()
         
-        # プレイヤーを新しい位置に配置して追加
+        # プレイヤーを新しい位置に配置
         self.teleport_entity(player)
-        self.add_entity(player)
         player.status.level += 1
         
         # 他のエンティティを生成
@@ -452,8 +469,9 @@ class Game:
         self.place_gold_in_dungeon(player.status.level)
         self.place_items_in_dungeon(player.status.level)
         
-        # プレイヤーの初期位置周辺を探索済みにする
+        # プレイヤーの初期位置周辺と部屋を探索済みにする
         self.mark_initial_visibility()
+        self.check_new_room_entry(player.x, player.y)
 
     def draw_help(self):
         keymap = self.input_handler.keymap
@@ -680,25 +698,22 @@ class Game:
 
     def restart_game(self, old_player: Player):
         """ゲームオーバー時にレベル1から再開する"""
-        # プレイヤーを除くすべてのエンティティを削除
-        self.entity_positions = {}
-        
-        # 新しいマップを生成
-        self.game_map.init_explored()
-
         # プレイヤーの状態を初期化
         from game_initializer import GameInitializer
         initializer = GameInitializer(self, self.logger)
         initializer.reset_player_status(old_player)
 
-        # プレイヤーを新しい位置に配置
+        # エンティティの位置情報を初期化
+        self.entity_positions = {}
+        
+        # プレイヤーを新しい位置に配置して追加
         self.teleport_entity(old_player)
         self.add_entity(old_player)
 
         # レベルを0に設定（enter_new_dungeonで1になる）
         old_player.status.level = 0
         
-        # 新しいダンジョンに入る
+        # 新しいダンジョンに入る（この中でマップの初期化も行われる）
         self.enter_new_dungeon(self.enemy_manager)
         self.identify_all_items()
 
@@ -706,7 +721,26 @@ class Game:
         self.log_messages.clear()
         self.renew_logger_window("Welcome back, brave adventurer!")
 
+        self._restart_game = True
+
     def attack_entity(self, attacker, target):
         """エンティティ間の攻撃処理を行う"""
         if hasattr(attacker, 'attack'):
             attacker.attack(target, self)
+
+    def handle_potion_selection(self, character):
+        potion_items = character.get_inventory_with_key(Potion)
+        if not potion_items:
+            self.renew_logger_window("There is no potion.")
+            return False
+
+        self.renew_logger_window(f"Choose potion, {', '.join(potion_items.keys())}")
+
+        selected_potion = self.wait_for_item_selection(potion_items)
+        if selected_potion:
+            selected_potion.use(character)
+            self.renew_logger_window(f"You drink the {selected_potion.display_name}")
+            return True
+        else:
+            self.renew_logger_window("This is not potion.")
+            return False

@@ -92,6 +92,8 @@ class InputHandler:
             self.action = ("load_game", player_pos[0], player_pos[1])
         elif keys[pygame.K_COMMA] and mods & pygame.KMOD_SHIFT:
             self.action = ("descend_stairs", player_pos[0], player_pos[1])
+        elif keys[pygame.K_q]:  # 'q'キーでポーションを使用
+            self.action = ("quaff_potion", *player_pos)
         else:
             # 移動先の座標を計算
             new_x = player_pos[0] + self.dx

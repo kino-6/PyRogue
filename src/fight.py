@@ -136,6 +136,7 @@ class Fight:
         modifier = 0
         
         # 防具による軽減
+        print(f"{defender.equipped_armor=}")
         if defender.equipped_armor:
             # 基本防具値
             modifier -= defender.equipped_armor.armor
@@ -143,6 +144,8 @@ class Fight:
             if hasattr(defender.equipped_armor, 'protection_bonus'):
                 modifier -= defender.equipped_armor.protection_bonus
         
+            print(f"{modifier=}, {defender.equipped_armor.armor=}")
+
         # 指輪による防御補正
         if defender.equipped_left_ring and hasattr(defender.equipped_left_ring, 'protection_bonus'):
             modifier -= defender.equipped_left_ring.protection_bonus

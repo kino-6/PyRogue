@@ -49,8 +49,9 @@ class Enemy(Character):
     def attack(self, target, game):
         """攻撃処理"""
         damage = self.status.attack_power
-        if target.take_damage(damage):  # take_damageがTrueを返したら死亡
-            print(f"{damage=}")
+        is_dead = target.take_damage(damage)
+        if is_dead:  # take_damageがTrueを返したら死亡
+            print(f"{damage=}, {is_dead=}")
             target.die(game)  # gameオブジェクトを渡す
 
     def calculate_exp_reward(self):

@@ -1,0 +1,8 @@
+type: "Potion"
+name: "Strength potion"
+char: "!"
+color: "yellow"
+undefined_name: "Yellow potion"
+effect: "strength"
+duration: 20
+flavor_text: "A yellow liquid that seems to radiate power." 
