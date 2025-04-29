@@ -1,0 +1,11 @@
+type: "Weapon"
+name: "Short Sword"
+char: ")"
+color: "white"
+undefined_name: "Short Blade?"
+wielded_dice: "2d4"
+throw_dice: "1d6"
+use_effect: None
+dmg_bonus: 1
+hit_bonus: 2
+flavor_text: "Description: A reliable one-handed sword. Well-balanced and suitable for both slashing and thrusting."

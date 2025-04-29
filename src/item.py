@@ -1,6 +1,7 @@
 from entity import Entity
 import os
 import yaml
+from copy import deepcopy
 
 
 class Item(Entity):
@@ -39,3 +40,7 @@ class Item(Entity):
             if not hasattr(item, k):
                 setattr(item, k, v)
         return item
+
+    def copy(self):
+        """アイテムのディープコピーを返す"""
+        return deepcopy(self)

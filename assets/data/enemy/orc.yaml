@@ -1,7 +1,7 @@
 char: "O"
 name: "orc"
 strength: 10
-exp: 5
+exp: 12
 level: 1
 exp_level: 1
 armor: 6

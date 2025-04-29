@@ -2,7 +2,7 @@ type: "Weapon"
 name: "Dagger"
 char: ")"
 color: "white"
-undefined_name: "Short Blade?"
+undefined_name: "Knife?"
 wielded_dice: "1d6+1d6"
 throw_dice: "1d4"
 use_effect: None

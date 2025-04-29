@@ -71,18 +71,23 @@ class Game:
                 self.player_collect_gold(player, entity)
                 break  # ゴールドを1つだけ拾う
 
-    def update_entity_position(self, entity, new_x, new_y):
-        # エンティティの位置を更新
-        old_pos = (entity.x, entity.y)
-        if old_pos in self.entity_positions:
-            self.entity_positions[old_pos].remove(entity)
-            if not self.entity_positions[old_pos]:
-                del self.entity_positions[old_pos]
-        entity.x, entity.y = new_x, new_y
-        new_pos = (new_x, new_y)
+    def update_entity_position(self, entity, old_pos=None):
+        """エンティティの位置を更新"""
+        if old_pos:
+            old_x, old_y = old_pos
+            # 古い位置からエンティティを削除
+            if (old_x, old_y) in self.entity_positions:
+                self.entity_positions[(old_x, old_y)].remove(entity)
+                # リストが空になったら辞書からキーを削除
+                if not self.entity_positions[(old_x, old_y)]:
+                    del self.entity_positions[(old_x, old_y)]
+        
+        # 新しい位置にエンティティを追加
+        new_pos = (entity.x, entity.y)
         if new_pos not in self.entity_positions:
             self.entity_positions[new_pos] = []
-        self.entity_positions[new_pos].append(entity)
+        if entity not in self.entity_positions[new_pos]:
+            self.entity_positions[new_pos].append(entity)
 
     def add_entity(self, entity):
         pos = (entity.x, entity.y)
@@ -100,7 +105,10 @@ class Game:
     def apply_enemy_action(self, enemy, action):
         # actionに基づいてエンティティの位置を更新する
         if action["type"] == "move":
-            self.update_entity_position(enemy, action["new_x"], action["new_y"])
+            old_pos = (enemy.x, enemy.y)
+            enemy.x = action["new_x"]
+            enemy.y = action["new_y"]
+            self.update_entity_position(enemy, old_pos)
         elif action["type"] == "attack":
             self.attack_entity(enemy, action["target"])
 
@@ -136,7 +144,7 @@ class Game:
         )
 
     def get_player_position(self):
-        # entity_positionsからプレイヤーの位置を取得
+        """Return player.x, player.y"""
         player = next(
             (
                 entity
@@ -159,17 +167,19 @@ class Game:
                     walkable_tiles.append((x, y))
         return walkable_tiles
 
-    def is_walkable(self, x, y) -> bool:
+    def is_walkable(self, x, y, ignore_characters=False) -> bool:
         """指定された座標が移動可能かどうかを判断する"""
         # タイル自体が移動可能かどうかをチェック
         walkable_tiles = self.get_walkable_tiles()
         if (x, y) not in walkable_tiles:
             return False
 
-        # 指定座標にあるエンティティのリストを取得
-        entities_at_new_pos = self.entity_positions.get((x, y), [])
-        if any(isinstance(entity, Character) for entity in entities_at_new_pos):
-            return False
+        if not ignore_characters:
+            # 指定座標にあるエンティティのリストを取得
+            entities_at_new_pos = self.entity_positions.get((x, y), [])
+            # キャラクターがいる場合のみ移動不可（アイテムは移動可能）
+            if any(isinstance(entity, Character) for entity in entities_at_new_pos):
+                return False
 
         return True
 
@@ -222,6 +232,15 @@ class Game:
         player = self.get_player()
         entities_at_player_pos = self.entity_positions.get((player.x, player.y), [])
         return any(isinstance(entity, Stairs) for entity in entities_at_player_pos)
+
+    def remove_player(self):
+        # entity listからプレーヤーを削除
+        from player import Player
+        for pos, entities in list(self.entity_positions.items()):
+            for entity in list(entities):
+                if isinstance(entity, Player):
+                    print(f"remove player: {entity.x}, {entity.y}")
+                    self.remove_entity(entity)
 
     def remove_stairs(self):
         # 既存の階段を探して削除する
@@ -387,45 +406,53 @@ class Game:
                 item.appraisal_at_judgment()
             elif hasattr(item, "appraisal"):
                 item.appraisal()
-        self.renew_logger_window("all item identified (DebugMode)")
+        self.renew_logger_window("all item identified")
 
     def update_turn(self):
         self.respawn_enemy()
 
+    def mark_initial_visibility(self):
+        """プレイヤーの初期位置周辺を探索済みにする"""
+        player = self.get_player()
+        if player:
+            # プレイヤーの周囲を探索済みにする
+            for dy in range(-1, 2):
+                for dx in range(-1, 2):
+                    nx, ny = player.x + dx, player.y + dy
+                    if 0 <= nx < self.game_map.width and 0 <= ny < self.game_map.height:
+                        self.game_map.explored[ny][nx] = True
+            
+            # プレイヤーがいる部屋全体を探索済みにする
+            self.check_new_room_entry(player.x, player.y)
+
     def enter_new_dungeon(self, enemy_manager):
         """新しいダンジョンへ移動する"""
-        # プレイヤーを退避
+        # プレイヤーを退避（既存のプレイヤーを使用）
         player = self.get_player()
-        self.reset_player_and_rooms()
-
-        # 既存の階段を削除
-        self.remove_stairs()
-
-        # 新しいダンジョンを生成
-        self.game_map.init_explored()
-
+        
         # エンティティの位置情報を初期化
         self.entity_positions = {}
-
-        # プレイヤーを新しいダンジョンのスタート位置に配置
+        
+        # 新しいダンジョンを生成
+        self.game_map.init_explored()
+        
+        # プレイヤーを新しい位置に配置して追加
         self.teleport_entity(player)
         self.add_entity(player)
         player.status.level += 1
-
-        # プレイヤーを除くエンティティを再生成
+        
+        # 他のエンティティを生成
         enemy_manager.create_enemies(self, player.status.level, const.INITIAL_SPAWN_ENEMY_NUM)
-
-        # 新しい階段を生成して追加
+        
+        # 階段、アイテム、ゴールドを配置
         stair = Stairs()
         self.teleport_entity(stair)
         self.add_entity(stair)
-
-        # new gold
         self.place_gold_in_dungeon(player.status.level)
-
-        # set items
         self.place_items_in_dungeon(player.status.level)
-        # self.explore_around_stairs()
+        
+        # プレイヤーの初期位置周辺を探索済みにする
+        self.mark_initial_visibility()
 
     def draw_help(self):
         keymap = self.input_handler.keymap
@@ -649,3 +676,34 @@ class Game:
         font = pygame.font.SysFont(None, 24)
         input_surface = font.render(":" + self.console_input, True, (255, 255, 255), (0, 0, 0))
         screen.blit(input_surface, (10, const.WINDOW_SIZE_H - 30))
+
+    def restart_game(self, old_player):
+        """ゲームオーバー時にレベル1から再開する"""
+        # プレイヤーを除くすべてのエンティティを削除
+        self.entity_positions = {}
+        
+        # 新しいマップを生成
+        self.game_map.init_explored()
+
+        # プレイヤーの状態を初期化
+        from game_initializer import GameInitializer
+        initializer = GameInitializer(self, self.logger)
+        initializer.reset_player_status(old_player)  # 新しいメソッド
+
+        # プレイヤーを新しい位置に配置
+        self.teleport_entity(old_player)
+        self.add_entity(old_player)
+
+        old_player.status.level = 0
+        self.enter_new_dungeon(self.enemy_manager)
+
+        self.identify_all_items()
+
+        # ログメッセージをクリア
+        self.log_messages.clear()
+        self.renew_logger_window("Welcome back, brave adventurer!")
+
+    def attack_entity(self, attacker, target):
+        """エンティティ間の攻撃処理を行う"""
+        if hasattr(attacker, 'attack'):
+            attacker.attack(target, self)

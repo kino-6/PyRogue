@@ -122,6 +122,9 @@ class GameMap:
             for x in range(room["x1"] + 1, room["x2"] - 1):
                 dungeon[y][x] = "."
 
+    def set_tile(self, dungeon, x, y, tile: str = "."):
+        dungeon[y][x] = tile
+
     def fix_isolated_doors(self, dungeon):
         width = len(dungeon[0])
         height = len(dungeon)

@@ -36,10 +36,15 @@ class Enemy(Character):
         if action:
             if action["type"] == "move":
                 # 移動アクションを適用
-                game.update_entity_position(self, action["new_x"], action["new_y"])
+                old_pos = (self.x, self.y)
+                self.x = action["new_x"]
+                self.y = action["new_y"]
+                game.update_entity_position(self, old_pos)
             elif action["type"] == "attack":
                 # 攻撃アクションを適用
                 self.attack(action["target"], game)
+
+        return action
 
     def attack(self, target, game):
         """攻撃処理"""
@@ -49,7 +54,7 @@ class Enemy(Character):
 
     def calculate_exp_reward(self):
         """経験値報酬の計算"""
-        base_exp = self.status.level * 10  # 基本経験値
+        base_exp = self.status.level * self.status.exp  # 基本経験値
         variance = random.randint(-5, 5)    # ±5の変動
         bonus = 0
         

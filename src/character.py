@@ -9,6 +9,7 @@ from typing import Dict, Optional
 from weapon import Weapon
 from armor import Armor
 from ring import Ring
+import pygame
 
 
 class Character(Entity):
@@ -66,7 +67,7 @@ class Character(Entity):
 
     def move(self, dx, dy, game):
         new_x, new_y = int(self.x + dx), int(self.y + dy)
-        if game.is_walkable(new_x, new_y):
+        if game.game_map.is_walkable(new_x, new_y):
             self.x, self.y = new_x, new_y
             self.pick_up_item_at_feet(game)
 
@@ -151,20 +152,19 @@ class Character(Entity):
         self.status.exp_level += 1
 
         # ステータス上昇値の計算
-        hp_gain = random.randint(1, 8)  # 1d8のHP増加
-        attack_gain = random.randint(1, 2)  # 1-2の攻撃力増加
-        # defense_gain = random.randint(0, 1)  # 0-1の防御力増加
+        hp_gain = random.randint(1, 8)
+        strength_gain = random.randint(1, 3)
 
         # ステータスの更新
         self.status.max_hp += hp_gain
         self.status.current_hp += hp_gain
-        self.status.attack_power += attack_gain
+        self.status.strength += strength_gain
         # self.status.defense_power += defense_gain
 
         # ログ出力
         self.add_logger(f"{self.status.name} has been raised to level {self.status.level}!")
         self.add_logger(f"MAX HP +{hp_gain}")
-        self.add_logger(f"Attack +{attack_gain}")
+        self.add_logger(f"Str + {strength_gain}")
 
     def level_down(self):
         """レベルダウン処理"""
@@ -175,13 +175,13 @@ class Character(Entity):
 
             # ステータス減少値の計算
             hp_loss = random.randint(1, 8)  # 1d8のHP減少
-            attack_loss = random.randint(1, 2)  # 1-2の攻撃力減少
-            defense_loss = random.randint(0, 1)  # 0-1の防御力減少
+            strength_loss = random.randint(1, 3)  # 1-3の攻撃力減少
+            # defense_loss = random.randint(0, 1)  # 0-1の防御力減少
 
             # ステータスの更新（最低値を下回らないように）
             self.status.max_hp = max(1, self.status.max_hp - hp_loss)
             self.status.current_hp = min(self.status.current_hp, self.status.max_hp)
-            self.status.attack_power = max(1, self.status.attack_power - attack_loss)
+            self.status.strength_power = max(1, self.status.strength - strength_loss)
             # self.status.defense_power = max(0, self.status.defense_power - defense_loss)
 
             # 経験値のリセット
@@ -237,19 +237,63 @@ class Character(Entity):
 
     def die(self, game):
         """キャラクターが死亡時の処理"""
-        if self.is_player:
-            # プレイヤーの死亡処理
+        if self.is_player:  # プレイヤーの場合
             self.status.current_hp = 0
-            self.add_logger("You crawled back from the brink of death...")
-            self.effects.clear()
-            game.is_player_turn = True
+            self.add_logger("You have been defeated...")
+            
+            # 画面を徐々に暗転
+            screen = pygame.display.get_surface()
+            dark_surface = pygame.Surface(screen.get_size())
+            dark_surface.fill((0, 0, 0))
+            
+            # フェードアウト効果
+            for alpha in range(0, 255, 5):
+                dark_surface.set_alpha(alpha)
+                screen.blit(dark_surface, (0, 0))
+                pygame.display.flip()
+                pygame.time.wait(20)
+            
+            # RIPと死亡情報の表示
+            font = pygame.font.Font(None, 74)
+            rip_text = font.render("REST IN PEACE", True, (255, 0, 0))
+            rip_rect = rip_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 3))
+            
+            small_font = pygame.font.Font(None, 36)
+            level_text = small_font.render(f"Level {self.status.level} {self.status.name}", True, (255, 255, 255))
+            level_rect = level_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+            
+            depth_text = small_font.render(f"Killed on dungeon Floor {self.status.level}", True, (255, 255, 255))
+            depth_rect = depth_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 + 40))
+            
+            restart_text = small_font.render("Press ENTER to Restart", True, (255, 255, 255))
+            restart_rect = restart_text.get_rect(center=(screen.get_width() // 2, screen.get_height() * 3 // 4))
+            
+            # 死亡画面の表示
+            screen.blit(rip_text, rip_rect)
+            screen.blit(level_text, level_rect)
+            screen.blit(depth_text, depth_rect)
+            screen.blit(restart_text, restart_rect)
+            pygame.display.flip()
+            
+            # ENTERキー入力待ち
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                            waiting = False
+                pygame.time.wait(10)
+            
+            # ゲームを再スタート
+            game.restart_game(self)
+
         else:  # 敵の場合
             # 経験値の計算と付与
             exp_gain = self.calculate_exp_reward()
             player = game.get_player()
             if player:
                 player.gain_experience(exp_gain)
-                self.add_logger(f"{self.status.name} was defeated!")
+                self.add_logger(f"{self.status.name} was defeated! Gained {exp_gain} experience!")
             
             # 敵の削除処理
             game.remove_entity(self)

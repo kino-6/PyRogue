@@ -94,7 +94,10 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
 
     # アクション名→処理関数のディスパッチテーブル
     def do_move():
-        player.move(input_handler.dx, input_handler.dy, game)
+        action, new_x, new_y = input_handler.action
+        dx = new_x - player.x
+        dy = new_y - player.y
+        player.move(dx, dy, game)
         game.update_player_position([player.x, player.y])
         return True
 

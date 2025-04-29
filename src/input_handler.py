@@ -109,7 +109,9 @@ class InputHandler:
         if any(isinstance(entity, Enemy) for entity in entities_at_new_pos):
             self.action = ("attack", new_x, new_y)
         elif self.game_map.is_walkable(new_x, new_y) and [new_x, new_y] != current_pos:
+            print(f"Action generated - walkable: {self.game_map.is_walkable(new_x, new_y)}, new_pos: {[new_x, new_y]}, current_pos: {current_pos}")
             self.action = ("move", new_x, new_y)
+            print(f"Action set to: {self.action}")
         else:
             self.action = ("none", current_pos[0], current_pos[1])
 

@@ -37,44 +37,126 @@ class Fight:
         attacker_level = attacker.status.exp_level
         def_armor = defender.status.armor
 
-        # 武器とボーナスの設定
-        if weapon is None:
-            # 素手
-            hit_bonus = 0
-            dmg_bonus = 0
-            attack_damage = "0d0"
-        else:
-            hit_bonus = weapon.hit_bonus
-            dmg_bonus = weapon.dmg_bonus
-            # ex. 1d3+1d3
-            if is_throw:
-                attack_damage = weapon.throw_dice
-            else:
-                attack_damage = weapon.wielded_dice
-
-        # リングの効果（仮の処理）
-        # ここにリングによる攻撃力やダメージのボーナスを適用するコードを追加
-
-        # 防具やリングによる防御力のボーナスを適用するコードを追加
-
+        # 武器情報の取得
+        weapon_info = self._get_weapon_info(weapon, is_throw)
+        
         # 攻撃処理
         did_hit = False
-        damage = 0
+        total_damage = 0
 
         # ダメージ計算のループ
-        for dmg in attack_damage.split("+"):
-            ndice, nsides = map(int, dmg.split("d"))
-            if self.swing(attacker_level, def_armor, hit_bonus):
+        for dmg in weapon_info['attack_damage'].split("+"):
+            if self.swing(attacker_level, def_armor, weapon_info['hit_bonus']):
+                ndice, nsides = map(int, dmg.split("d"))
                 roll_result = self.roll_dice(ndice, nsides)
-
-                max_damage = int(base_dmg / 2) + roll_result + dmg_bonus
-                rnd_damage = int(max_damage / 16) + 1
-                max_damage += random.randint(-rnd_damage, rnd_damage)
-
-                damage = max(0, max_damage)
+                damage = self._calculate_damage(
+                    base_damage=base_dmg,
+                    roll_result=roll_result,
+                    weapon_bonus=weapon_info['dmg_bonus'],
+                    attacker=attacker,
+                    defender=defender
+                )
+                total_damage += damage
                 did_hit = True
 
-        return did_hit, damage
+        return did_hit, total_damage
+
+    def _get_weapon_info(self, weapon: Weapon, is_throw: bool) -> dict:
+        """武器の情報を取得"""
+        if weapon is None:
+            return {
+                'hit_bonus': 0,
+                'dmg_bonus': 0,
+                'attack_damage': '0d0'
+            }
+        return {
+            'hit_bonus': weapon.hit_bonus,
+            'dmg_bonus': weapon.dmg_bonus,
+            'attack_damage': weapon.throw_dice if is_throw else weapon.wielded_dice
+        }
+
+    def _calculate_damage(self, base_damage: int, roll_result: int, 
+                         weapon_bonus: int, attacker: Character, 
+                         defender: Character) -> int:
+        """ダメージ計算のロジック
+        
+        Parameters:
+        -----------
+        base_damage : int
+            基本ダメージ（キャラクターの筋力など）
+        roll_result : int
+            ダイスロールの結果
+        weapon_bonus : int
+            武器のダメージボーナス
+        attacker : Character
+            攻撃者のキャラクター情報
+        defender : Character
+            防御者のキャラクター情報
+        
+        Returns:
+        --------
+        int
+            最終的なダメージ値
+        """
+        # 基本ダメージ計算
+        max_damage = int(base_damage / 2) + roll_result + weapon_bonus
+        
+        # ばらつきの追加
+        rnd_damage = int(max_damage / 16) + 1
+        max_damage += random.randint(-rnd_damage, rnd_damage)
+        
+        # 装備品による防御効果
+        defense_modifier = self._calculate_equipment_modifier(attacker, defender)
+        
+        # 状態異常による補正
+        status_modifier = self._calculate_status_modifier(attacker, defender)
+        
+        # 最終ダメージの計算（0未満にはならない）
+        final_damage = max(0, max_damage + defense_modifier + status_modifier)
+        
+        print(f"Damage calculation: {final_damage} = {max_damage} (base) + {defense_modifier} (defense) + {status_modifier} (status)")
+        
+        return final_damage
+
+    def _calculate_equipment_modifier(self, attacker: Character, defender: Character) -> int:
+        """装備品による補正値の計算
+        
+        Parameters:
+        -----------
+        attacker : Character
+            攻撃者のキャラクター情報
+        defender : Character
+            防御者のキャラクター情報
+        
+        Returns:
+        --------
+        int
+            装備品による補正値（負の値になることが多い）
+        """
+        modifier = 0
+        
+        # 防具による軽減
+        if defender.equipped_armor:
+            # 基本防具値
+            modifier -= defender.equipped_armor.armor
+            # 防具のprotection bonus
+            if hasattr(defender.equipped_armor, 'protection_bonus'):
+                modifier -= defender.equipped_armor.protection_bonus
+        
+        # 指輪による防御補正
+        if defender.equipped_left_ring and hasattr(defender.equipped_left_ring, 'protection_bonus'):
+            modifier -= defender.equipped_left_ring.protection_bonus
+        
+        if defender.equipped_right_ring and hasattr(defender.equipped_right_ring, 'protection_bonus'):
+            modifier -= defender.equipped_right_ring.protection_bonus
+        
+        print(f"Equipment defense modifier: {modifier} (armor + protection bonuses)")
+        return modifier
+
+    def _calculate_status_modifier(self, attacker: Character, defender: Character) -> int:
+        """状態異常による補正値の計算"""
+        # TODO: 状態異常の効果の実装
+        return 0
 
     def swing(self, attacker_level, defender_armor, hit_bonus):
         res = random.randint(1, 20)

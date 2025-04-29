@@ -1,9 +1,19 @@
 char: "@"
 name: "Player"
 max_hp: 15
-strength: 12
+strength: 8
 exp: 0
 level: 1
 exp_level: 1
 armor: 0
 color: "white"
+gold: 0
+
+initial_equipment:
+  weapon: "Short Sword"  # 実際のアイテム名を指定
+  armor: "Leather armor"
+  food:
+    - "Food"
+    - "Food"
+  items:
+    - "Healing Potion"
