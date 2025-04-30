@@ -48,11 +48,33 @@ class Enemy(Character):
 
     def attack(self, target, game):
         """攻撃処理"""
-        damage = self.status.attack_power
-        is_dead = target.take_damage(damage)
-        if is_dead:  # take_damageがTrueを返したら死亡
-            print(f"{damage=}, {is_dead=}")
-            target.die(game)  # gameオブジェクトを渡す
+        # 攻撃の成功を判定
+        did_hit, damage = self._roll_attack(target)
+        
+        if did_hit:
+            is_killed = target.take_damage(damage)
+            game.logger.info(f"{self.status.name} attacks {target.status.name} for {damage} damage.")
+            
+            if is_killed:
+                target.die(game)
+        else:
+            game.logger.info(f"{self.status.name} missed {target.status.name}!")
+
+    def _roll_attack(self, target):
+        """攻撃の成功判定とダメージ計算"""
+        # 基本ダメージ
+        base_damage = self.status.attack_power
+        
+        # 攻撃の成功判定（簡易版）
+        hit_chance = 70  # 基本命中率
+        did_hit = random.randint(1, 100) <= hit_chance
+        
+        if did_hit:
+            # ダメージの計算（簡易版）
+            damage = max(1, base_damage - target.status.armor)
+            return True, damage
+        else:
+            return False, 0
 
     def calculate_exp_reward(self):
         """経験値報酬の計算"""
@@ -192,7 +214,8 @@ class ChasePlayerBehavior(EnemyBehavior):
         next_step = find_next_step(game.game_map, enemy_pos, player_pos)
         if next_step != enemy_pos:
             new_x, new_y = next_step
-            if not (new_x == player.x and new_y == player.y):  # プレイヤーの位置でない場合のみ移動
+            # 移動先に他のキャラクターがいないことを確認
+            if not any(isinstance(e, Character) for e in game.get_entities_at_position(new_x, new_y)):
                 return {"type": "move", "new_x": new_x, "new_y": new_y}
 
         return None
@@ -201,22 +224,27 @@ class ChasePlayerBehavior(EnemyBehavior):
 class RandomWalkBehavior:
     def determine_action(self, enemy: Enemy, game: Game):
         # 8方向のいずれかにランダムに移動する
-        dx, dy = random.choice(
-            [
-                (0, 1),  # 上
-                (1, 0),  # 右
-                (0, -1),  # 下
-                (-1, 0),  # 左
-                (-1, -1),  # 左上
-                (1, -1),  # 右上
-                (-1, 1),  # 左下
-                (1, 1),  # 右下
-            ]
-        )
-        new_x, new_y = enemy.x + dx, enemy.y + dy
-
-        if game.is_walkable(new_x, new_y):
-            return {"type": "move", "new_x": new_x, "new_y": new_y}
+        possible_moves = [
+            (0, 1),  # 上
+            (1, 0),  # 右
+            (0, -1),  # 下
+            (-1, 0),  # 左
+            (-1, -1),  # 左上
+            (1, -1),  # 右上
+            (-1, 1),  # 左下
+            (1, 1),  # 右下
+        ]
+        
+        # 移動可能な方向をランダムにシャッフル
+        random.shuffle(possible_moves)
+        
+        for dx, dy in possible_moves:
+            new_x, new_y = enemy.x + dx, enemy.y + dy
+            
+            # 移動先が移動可能で、他のキャラクターがいないことを確認
+            if game.is_walkable(new_x, new_y) and not any(isinstance(e, Character) for e in game.get_entities_at_position(new_x, new_y)):
+                return {"type": "move", "new_x": new_x, "new_y": new_y}
+        
         return None
 
 
