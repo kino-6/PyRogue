@@ -234,68 +234,61 @@ class Draw:
         self.draw_window_with_logs(50, 50, 500, 400, help_lines, ["white"]*len(help_lines))
 
     def draw_item_list_window(self):
-        """アイテムリストを表示するウィンドウ"""
-        # ウィンドウのサイズと位置を設定
-        window_width = 400
-        window_height = 300
-        window_x = (self.screen.get_width() - window_width) // 2
-        window_y = (self.screen.get_height() - window_height) // 2
+        from item_manager import ItemManager
+        player = self.game.get_player()
 
-        # 背景ウィンドウを描画
-        self.draw_window(window_x, window_y, window_width, window_height)
+        item_manager = ItemManager()
+        item_list = item_manager.get_all_items_with_unique_id()
+        selected_id = self.draw_item_list_window_and_select_id(item_list)
+        if selected_id:
+            # 4文字IDで一致するアイテムを探す
+            for entry in item_list:
+                if entry["id"][:4] == selected_id:
+                    item = entry["item"]
+                    player.inventory.add_item(item)
+                    print(f"{item.name} added to inventory")
+                    break
+            else:
+                print("No items with that ID were found.")
+        else:
+            print("Canceled.")
 
-        # フォントの設定
-        font = self.assets_manager.load_font(const.FONT_DEFAULT, const.FONT_SIZE)
-        
-        # アイテムリストの取得
-        item_manager = self.game.item_manager
-        items = item_manager.get_all_items_with_unique_id()
-        
-        # 表示可能な行数を計算
-        line_height = const.FONT_SIZE + 2
-        max_lines = (window_height - 40) // line_height  # 40は余白
-        
-        # スクロール位置の管理
-        if not hasattr(self, 'item_list_scroll_pos'):
-            self.item_list_scroll_pos = 0
-            
-        # 表示するアイテムの範囲を計算
-        start_idx = self.item_list_scroll_pos
-        end_idx = min(start_idx + max_lines, len(items))
-        
-        # アイテム情報の表示
-        y_offset = window_y + 20
-        for i in range(start_idx, end_idx):
-            item_data = items[i]
-            item = item_data["item"]
-            item_id = item_data["id"]
-            
-            # アイテム情報のテキストを生成
-            item_text = f"{item_id[:4]}: {item.name} ({item.char})"
-            
-            # テキストを描画
-            text_surface = font.render(item_text, True, const.PYGAME_COLOR_WHITE)
-            self.screen.blit(text_surface, (window_x + 10, y_offset))
-            y_offset += line_height
-            
-        # スクロールバーの表示
-        if len(items) > max_lines:
-            scrollbar_height = (max_lines / len(items)) * (window_height - 40)
-            scrollbar_y = window_y + 20 + (self.item_list_scroll_pos / len(items)) * (window_height - 40)
-            pygame.draw.rect(self.screen, const.PYGAME_COLOR_WHITE, 
-                           (window_x + window_width - 10, scrollbar_y, 5, scrollbar_height))
-            
-        # ヘルプテキストの表示
-        help_text = "↑↓: スクロール, ESC: 閉じる"
-        help_surface = font.render(help_text, True, const.PYGAME_COLOR_WHITE)
-        self.screen.blit(help_surface, (window_x + 10, window_y + window_height - 30))
-        
-        # スクロール位置の更新
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP] and self.item_list_scroll_pos > 0:
-            self.item_list_scroll_pos -= 1
-        if keys[pygame.K_DOWN] and self.item_list_scroll_pos < len(items) - max_lines:
-            self.item_list_scroll_pos += 1
+    def draw_item_list_window_and_select_id(self, item_list, id_length=4):
+        """
+        item_list: List[Dict] 例: [{"id": "xxxx", "item": <Item>}, ...]
+        ユーザーがIDを入力し、Enterで決定するまで待つ。
+        入力されたID（str）を返す。キャンセル時はNone。
+        """
+        input_id = ""
+        selected_id = None
+        running = True
+
+        while running:
+            # ウィンドウ描画
+            lines = [f"{entry['id'][:id_length]}: {entry['item'].type}: {getattr(entry['item'], 'name', str(entry['item']))}" for entry in item_list]
+            self.draw_window_with_logs(50, 50, 500, 400, lines, ["white"] * len(lines))
+
+            # 入力欄の描画
+            font = pygame.font.SysFont(None, 24)
+            input_surface = font.render("ID: " + input_id, True, (255, 255, 255), (0, 0, 0))
+            self.screen.blit(input_surface, (60, 460))
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                        selected_id = input_id
+                        running = False
+                    elif event.key == pygame.K_ESCAPE:
+                        selected_id = None
+                        running = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        input_id = input_id[:-1]
+                    else:
+                        if event.unicode.isprintable():
+                            input_id += event.unicode
+            pygame.time.wait(10)
+        return selected_id
 
     def draw_attention_mark(self, entity):
         from constants import GRID_SIZE, PYGAME_COLOR_RED, FONT_DEFAULT
