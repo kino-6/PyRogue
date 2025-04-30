@@ -32,10 +32,12 @@ class Fight:
             return False
 
     def roll_em(self, attacker: Character, defender: Character, is_throw=False):
+        print(f"atk: {attacker.status.name}, def: {defender.status.name}")
         weapon = attacker.equipped_weapon
         base_dmg = attacker.status.strength // 2
         attacker_level = attacker.status.exp_level
         def_armor = defender.status.armor
+        print(f"{weapon=}, {base_dmg=}, {attacker_level=}, {def_armor=}")
 
         # 武器情報の取得
         weapon_info = self._get_weapon_info(weapon, is_throw)

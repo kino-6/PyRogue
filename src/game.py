@@ -112,9 +112,14 @@ class Game:
         # actionに基づいてエンティティの位置を更新する
         if action["type"] == "move":
             old_pos = (enemy.x, enemy.y)
-            enemy.x = action["new_x"]
-            enemy.y = action["new_y"]
-            self.update_entity_position(enemy, old_pos)
+            new_x, new_y = action["new_x"], action["new_y"]
+            
+            # 移動先に他のキャラクターがいないことを確認
+            entities_at_new_pos = self.get_entities_at_position(new_x, new_y)
+            if not any(isinstance(e, Character) for e in entities_at_new_pos):
+                enemy.x = new_x
+                enemy.y = new_y
+                self.update_entity_position(enemy, old_pos)
         elif action["type"] == "attack":
             self.attack_entity(enemy, action["target"])
 
@@ -128,9 +133,20 @@ class Game:
         """teleport 1 entity"""
         walkable_tiles = self.game_map.get_walkable_tiles()
         if walkable_tiles:
-            x, y = random.choice(walkable_tiles)
-            entity.x = x
-            entity.y = y
+            # 既に他のキャラクターがいるマスを除外
+            available_tiles = [
+                (x, y) for x, y in walkable_tiles
+                if not any(isinstance(e, Character) for e in self.get_entities_at_position(x, y))
+            ]
+            if available_tiles:
+                x, y = random.choice(available_tiles)
+                entity.x = x
+                entity.y = y
+            else:
+                # 利用可能なマスがない場合は、ランダムな位置に配置
+                x, y = random.choice(walkable_tiles)
+                entity.x = x
+                entity.y = y
 
     def teleport_all_entities(self):
         for pos, entities in self.entity_positions.items():
