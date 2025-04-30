@@ -177,13 +177,23 @@ class Draw:
     def draw_status_window(self, status: Status):
         x, y = self.game.get_player_position()
         status_txt = status.generate_status_txt(x, y)
+        
+        # エフェクト情報を追加
+        player = self.game.get_player()
+        effect_symbols = player.get_effect_info()
+        if effect_symbols:
+            status_txt.append(f"Effects: {''.join(effect_symbols)}")
+        
         log_colors = ["white"] * len(status_txt)
 
         x, y = self.get_game_map_size_px()
         window_width = const.WINDOW_SIZE_W - x
         window_height = const.WINDOW_SIZE_H
+        status_window_height = const.FONT_SIZE * 12
+
+        # ステータスウィンドウの位置を調整
         self.draw_window_with_logs(
-            x, 0, window_width, window_height, status_txt, log_colors, font_size=const.LOG_FONT_SIZE
+            x, 0, window_width, status_window_height, status_txt, log_colors, font_size=const.LOG_FONT_SIZE - 3
         )
 
     def draw_inventory_window(self, character: Character):

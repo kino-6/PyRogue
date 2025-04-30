@@ -1,0 +1,8 @@
+type: "Potion"
+name: "Full Restoration Potion"
+char: "!"
+color: "cyan"
+undefined_name: "Cyan potion"
+effect: "full_restoration"
+duration: 0
+flavor_text: "A cyan liquid that radiates with powerful restorative energy." 

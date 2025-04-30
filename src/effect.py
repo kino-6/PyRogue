@@ -95,6 +95,24 @@ class EnemySearchEffect(SpecialEffect):
     def remove_effect(self, character):
         character.enemy_search_active = False
 
+class FullRestorationEffect(SpecialEffect):
+    def apply_effect(self, character):
+        """完全回復エフェクトを適用"""
+        character.status.current_hp = character.status.max_hp
+        # すべてのネガティブエフェクトを削除
+        for effect in character.effects[:]:
+            if isinstance(effect, (PoisonEffect, WeaknessEffect)):
+                effect.remove_effect(character)
+                character.effects.remove(effect)
+
+    def remove_effect(self, character):
+        """エフェクト解除時の処理（即時効果のため不要）"""
+        pass
+
+    def on_turn(self, character):
+        """ターン毎の処理（即時効果のため不要）"""
+        pass
+
 EFFECT_MAP = {
     "no_effect": NoEffect,
     "add_strength": StrengthEffect,
@@ -105,4 +123,5 @@ EFFECT_MAP = {
     "protection": ProtectionEffect,
     "keep_health": KeepHealthEffect,
     "enemy_search": EnemySearchEffect,
+    "full_restoration": FullRestorationEffect,  # 新しいエフェクトを追加
 }

@@ -9,6 +9,7 @@ from typing import Dict, Optional
 from weapon import Weapon
 from armor import Armor
 from ring import Ring
+from effect import RegenerationEffect, StrengthEffect, ProtectionEffect
 import pygame
 
 
@@ -341,3 +342,15 @@ class Character(Entity):
         # ゲーム状態の更新
         self.is_player_turn = True
         self.update_fov()
+
+    def get_effect_info(self):
+        """現在のエフェクト情報を簡略化して取得"""
+        effect_symbols = []
+        for effect in self.effects:
+            if isinstance(effect, RegenerationEffect):
+                effect_symbols.append("R")
+            elif isinstance(effect, StrengthEffect):
+                effect_symbols.append("S")
+            elif isinstance(effect, ProtectionEffect):
+                effect_symbols.append("P")
+        return effect_symbols
