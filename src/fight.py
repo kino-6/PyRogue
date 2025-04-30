@@ -33,7 +33,7 @@ class Fight:
 
     def roll_em(self, attacker: Character, defender: Character, is_throw=False):
         weapon = attacker.equipped_weapon
-        base_dmg = attacker.status.strength
+        base_dmg = attacker.status.strength // 2
         attacker_level = attacker.status.exp_level
         def_armor = defender.status.armor
 

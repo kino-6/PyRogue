@@ -1,3 +1,6 @@
+import constants as const
+
+
 class SpecialEffect:
     def apply_effect(self, character):
         pass
@@ -36,14 +39,17 @@ class AllHitEffect(SpecialEffect):
         character.hit_bonus -= 99
 
 class RegenerationEffect(SpecialEffect):
-    def __init__(self, heal_amount=1):
+    def __init__(self, heal_amount=const.HEALING_AMOUNT, duration=15):
         super().__init__()
         self.heal_amount = heal_amount
+        self.duration = duration
+        self.turns_passed = 0
 
     def apply_effect(self, character):
         """エフェクト付与時の処理"""
         super().apply_effect(character)
         character.add_effect(self)  # キャラクターにエフェクトを登録
+        character.heal_damage(self.heal_amount)  # 即時回復を追加
 
     def remove_effect(self, character):
         """エフェクト解除時の処理"""
@@ -52,7 +58,12 @@ class RegenerationEffect(SpecialEffect):
 
     def on_turn(self, character):
         """ターン毎の処理"""
-        character.heal_damage(self.heal_amount)
+        self.turns_passed += 1
+        if self.turns_passed >= self.duration:
+            self.remove_effect(character)
+            character.add_logger("The regeneration effect wears off.")
+        else:
+            character.heal_damage(self.heal_amount)
 
 
 class ShockWaveEffect(SpecialEffect):

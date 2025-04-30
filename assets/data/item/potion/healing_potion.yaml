@@ -4,5 +4,5 @@ char: "!"
 color: "red"
 undefined_name: "Red potion"
 effect: "regeneration"
-duration: 10
+duration: 15
 flavor_text: "A red liquid that seems to pulse with healing energy." 

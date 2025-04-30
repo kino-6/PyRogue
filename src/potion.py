@@ -26,7 +26,7 @@ class Potion(Item):
         if self.effect_type == "strength":
             effect = StrengthEffect()
         elif self.effect_type == "regeneration":
-            effect = RegenerationEffect()
+            effect = RegenerationEffect(duration=self.effect_duration)
         elif self.effect_type == "protection":
             effect = ProtectionEffect()
         else:

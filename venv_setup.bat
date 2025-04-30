@@ -1,7 +1,7 @@
 @echo off
 
-REM 仮想環境の作成
-python -m venv venv
+REM Pythonのバージョンを指定して仮想環境を作成
+py -3.11 -m venv venv
 
 REM 仮想環境のアクティベート
 call venv\Scripts\activate
@@ -14,3 +14,6 @@ pip install -r requirements.txt
 
 REM バッチ処理の終了
 @echo finish.
+
+REM 仮想環境がアクティベートされた状態の新しいコマンドプロンプトを開く
+cmd /k
