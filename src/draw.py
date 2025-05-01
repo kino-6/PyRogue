@@ -263,15 +263,60 @@ class Draw:
         selected_id = None
         running = True
 
+        # スクロール位置の初期化
+        if not hasattr(self, 'item_list_scroll_pos'):
+            self.item_list_scroll_pos = 0
+
+        # ウィンドウの設定
+        window_width = 500
+        window_height = 600
+        window_x = 50
+        window_y = 50
+        line_height = const.FONT_SIZE + 2
+        margin = 10  # マージン
+        header_height = 30  # ヘッダー部分の高さ
+        input_height = 30  # 入力欄の高さ
+        max_lines = (window_height - header_height - input_height - margin * 2) // line_height
+
         while running:
+            # スクロール位置の制限
+            self.item_list_scroll_pos = max(0, min(self.item_list_scroll_pos, len(item_list) - max_lines))
+
+            # 表示する行の範囲を計算
+            start_line = self.item_list_scroll_pos
+            end_line = min(start_line + max_lines, len(item_list))
+
             # ウィンドウ描画
-            lines = [f"{entry['id'][:id_length]}: {entry['item'].type}: {getattr(entry['item'], 'name', str(entry['item']))}" for entry in item_list]
-            self.draw_window_with_logs(50, 50, 500, 400, lines, ["white"] * len(lines))
+            self.draw_window(window_x, window_y, window_width, window_height)
+
+            # ヘルプテキストの描画
+            font = pygame.font.SysFont(None, 24)
+            help_text = "Up/Down: Scroll, Enter: Select, ESC: Cancel"
+            help_surface = font.render(help_text, True, (255, 255, 255))
+            self.screen.blit(help_surface, (window_x + margin, window_y + margin))
+
+            # アイテムリストの描画
+            list_y = window_y + header_height + margin
+            for i, entry in enumerate(item_list[start_line:end_line]):
+                y_pos = list_y + i * line_height
+                text = f"{entry['id'][:id_length]}: {entry['item'].type}: {getattr(entry['item'], 'name', str(entry['item']))}"
+                text_surface = font.render(text, True, (255, 255, 255))
+                self.screen.blit(text_surface, (window_x + margin, y_pos))
+
+            # スクロールバーの描画
+            if len(item_list) > max_lines:
+                scrollbar_width = 5
+                scrollbar_x = window_x + window_width - margin - scrollbar_width
+                scrollbar_height = (max_lines / len(item_list)) * (window_height - header_height - input_height - margin * 2)
+                scrollbar_y = list_y + (self.item_list_scroll_pos / len(item_list)) * (window_height - header_height - input_height - margin * 2)
+                pygame.draw.rect(self.screen, const.PYGAME_COLOR_WHITE,
+                               (scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height))
 
             # 入力欄の描画
-            font = pygame.font.SysFont(None, 24)
+            input_y = window_y + window_height - input_height - margin
             input_surface = font.render("ID: " + input_id, True, (255, 255, 255), (0, 0, 0))
-            self.screen.blit(input_surface, (60, 460))
+            self.screen.blit(input_surface, (window_x + margin, input_y))
+
             pygame.display.flip()
 
             for event in pygame.event.get():
@@ -284,6 +329,10 @@ class Draw:
                         running = False
                     elif event.key == pygame.K_BACKSPACE:
                         input_id = input_id[:-1]
+                    elif event.key == pygame.K_UP:
+                        self.item_list_scroll_pos = max(0, self.item_list_scroll_pos - 1)
+                    elif event.key == pygame.K_DOWN:
+                        self.item_list_scroll_pos = min(len(item_list) - max_lines, self.item_list_scroll_pos + 1)
                     else:
                         if event.unicode.isprintable():
                             input_id += event.unicode
