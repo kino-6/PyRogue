@@ -16,6 +16,7 @@ import pickle
 import yaml
 import os
 from potion import Potion, PotionManager
+from effect import EFFECT_MAP
 
 
 class GameState(Enum):
@@ -684,6 +685,8 @@ class Game:
                 self.console_mode = False
             elif event.key == pygame.K_BACKSPACE:
                 self.console_input = self.console_input[:-1]
+            elif event.key == pygame.K_t:  # 投げるコマンドを追加
+                self.handle_throw_item(player)
             else:
                 if event.unicode.isprintable():
                     self.console_input += event.unicode
@@ -761,3 +764,152 @@ class Game:
         else:
             self.renew_logger_window("This is not potion.")
             return False
+
+    def handle_throw_item(self, character):
+        """アイテムを投げる処理"""
+        # インベントリから投げるアイテムを選択
+        items = character.inventory.items
+        if not items:
+            self.renew_logger_window("You have nothing to throw.")
+            return False
+
+        self.renew_logger_window("Select an item to throw:")
+        selected_item = self.wait_for_item_selection({k: v for k, v in zip("abcdefghijklmnopqrstuvwxyz", items)})
+        if not selected_item:
+            return False
+
+        # 投げる方向を選択
+        self.renew_logger_window("Select direction to throw (use arrow keys):")
+        direction = self.wait_for_direction()
+        if not direction:
+            return False
+
+        # 投げる処理を実行
+        self.throw_item(character, selected_item, direction)
+        return True
+
+    def wait_for_direction(self):
+        """方向入力を待つ"""
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    # 矢印キー
+                    if event.key == pygame.K_UP or event.key == pygame.K_KP8:
+                        return (0, -1)
+                    elif event.key == pygame.K_DOWN or event.key == pygame.K_KP2:
+                        return (0, 1)
+                    elif event.key == pygame.K_LEFT or event.key == pygame.K_KP4:
+                        return (-1, 0)
+                    elif event.key == pygame.K_RIGHT or event.key == pygame.K_KP6:
+                        return (1, 0)
+                    # テンキー（斜め方向）
+                    elif event.key == pygame.K_KP7:  # 左上
+                        return (-1, -1)
+                    elif event.key == pygame.K_KP9:  # 右上
+                        return (1, -1)
+                    elif event.key == pygame.K_KP1:  # 左下
+                        return (-1, 1)
+                    elif event.key == pygame.K_KP3:  # 右下
+                        return (1, 1)
+                    elif event.key == pygame.K_ESCAPE:
+                        return None
+            pygame.time.delay(100)
+
+    def throw_item(self, character, item, direction):
+        """アイテムを投げる"""
+        dx, dy = direction
+        current_x, current_y = character.x, character.y
+        next_x, next_y = current_x + dx, current_y + dy
+        max_attempts = 32  # 最大試行回数
+        attempts = 0
+
+        # 投げたアイテムをインベントリから削除
+        character.inventory.remove_item(item)
+
+        # アイテムが壁に当たるか、敵に当たるまで移動
+        while attempts < max_attempts:
+            # 壁に当たった場合
+            if not self.is_walkable(next_x, next_y):
+                # 現在の位置と前の位置をチェック
+                for check_x, check_y in [(next_x, next_y), (current_x, current_y)]:
+                    if self.is_walkable(check_x, check_y):
+                        # ポーションの場合、壁に当たって砕ける
+                        if hasattr(item, 'effect_type') and item.effect_type:
+                            self.renew_logger_window(f"The {item.name} shatters against the wall!")
+                            return
+                        # その他のアイテムは落ちる
+                        item.x, item.y = check_x, check_y
+                        self.add_entity(item)
+                        return
+                # 空いている場所が見つからない場合、次の試行へ
+                attempts += 1
+                # 8方向を順番にチェック
+                for dx, dy in [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]:
+                    check_x, check_y = current_x + dx, current_y + dy
+                    if self.is_walkable(check_x, check_y):
+                        item.x, item.y = check_x, check_y
+                        self.add_entity(item)
+                        return
+                # 空いている場所が見つからない場合、アイテムを消去
+                self.renew_logger_window(f"The {item.name} disappears into the void!")
+                return
+
+            # 敵に当たった場合
+            for entity in self.get_entities_at_position(next_x, next_y):
+                if isinstance(entity, Character) and not entity.is_player:
+                    # ポーションの場合、敵に効果を適用
+                    if hasattr(item, 'effect_type') and item.effect_type:
+                        effect_class = EFFECT_MAP.get(item.effect_type)
+                        if effect_class:
+                            effect = effect_class()
+                            effect.apply_effect(entity)
+                            self.renew_logger_window(f"The {item.name} hits {entity.status.name}!")
+                            return
+                    # その他のアイテムは敵にダメージを与える
+                    damage = self.calculate_throw_damage(item)
+                    is_dead = entity.take_damage(damage)
+                    self.renew_logger_window(f"The {item.name} hits {entity.status.name} for {damage} damage!")
+                    if is_dead:
+                        entity.die(self)
+                    return
+
+            # 他のアイテムに当たった場合、周囲を探索
+            for entity in self.get_entities_at_position(next_x, next_y):
+                if isinstance(entity, Item):
+                    attempts += 1
+                    # 8方向を順番にチェック
+                    for dx, dy in [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]:
+                        check_x, check_y = next_x + dx, next_y + dy
+                        if self.is_walkable(check_x, check_y):
+                            item.x, item.y = check_x, check_y
+                            self.add_entity(item)
+                            return
+                    # 空いている場所が見つからない場合、次の試行へ
+                    break
+
+            # 次の位置へ移動
+            current_x, current_y = next_x, next_y
+            next_x, next_y = current_x + dx, current_y + dy
+
+        # 最大試行回数を超えた場合、アイテムを消去
+        self.renew_logger_window(f"The {item.name} disappears into the void!")
+
+    def calculate_throw_damage(self, item):
+        """投げたアイテムのダメージを計算"""
+        if not hasattr(item, 'throw_dice'):
+            return 1  # デフォルトのダメージ
+
+        dice_str = item.throw_dice
+        if not dice_str:
+            return 1
+
+        # ダイスロールの結果を計算
+        total_damage = 0
+        for part in dice_str.split('+'):
+            if 'd' in part:
+                num_dice, num_sides = map(int, part.split('d'))
+                total_damage += sum(random.randint(1, num_sides) for _ in range(num_dice))
+            else:
+                total_damage += int(part)
+
+        return max(1, total_damage)  # 最低1のダメージを保証

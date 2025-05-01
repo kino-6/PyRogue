@@ -184,6 +184,9 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
     def do_quaff_potion():
         return game.handle_potion_selection(player)
 
+    def do_throw_item():
+        return game.handle_throw_item(player)
+
     # アクション名→関数のマッピング
     action_map = {
         "move": do_move,
@@ -203,6 +206,7 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         "load_game": do_load_game,
         "none": do_none,
         "quaff_potion": do_quaff_potion,
+        "throw_item": do_throw_item,
     }
 
     # アクション名で分岐
