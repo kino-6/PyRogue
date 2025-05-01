@@ -1,0 +1,8 @@
+type: "Potion"
+name: "Invisibility potion"
+char: "!"
+color: "lightblue"
+undefined_name: "Light blue potion"
+effect: "invisibility"
+duration: 20
+flavor_text: "A shimmering light blue liquid that makes you feel weightless." 

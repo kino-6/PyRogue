@@ -113,6 +113,35 @@ class FullRestorationEffect(SpecialEffect):
         """ターン毎の処理（即時効果のため不要）"""
         pass
 
+class InvisibilityEffect(SpecialEffect):
+    def __init__(self, duration=20):
+        super().__init__()
+        self.duration = duration
+        self.turns_passed = 0
+
+    def apply_effect(self, character):
+        """透明化エフェクトを適用"""
+        super().apply_effect(character)
+        character.add_effect(self)
+        character.is_invisible = True
+        character.add_logger("You feel yourself becoming transparent!")
+
+    def remove_effect(self, character):
+        """エフェクト解除時の処理"""
+        super().remove_effect(character)
+        character.remove_effect(self)
+        character.is_invisible = False
+        character.add_logger("You feel yourself becoming visible again.")
+
+    def on_turn(self, character):
+        """ターン毎の処理"""
+        self.turns_passed += 1
+        if self.turns_passed >= self.duration:
+            self.remove_effect(character)
+        else:
+            # 透明化中は敵から見つかりにくくなる
+            character.evasion_bonus = 50  # 回避率を上昇
+
 EFFECT_MAP = {
     "no_effect": NoEffect,
     "add_strength": StrengthEffect,
@@ -123,5 +152,6 @@ EFFECT_MAP = {
     "protection": ProtectionEffect,
     "keep_health": KeepHealthEffect,
     "enemy_search": EnemySearchEffect,
-    "full_restoration": FullRestorationEffect,  # 新しいエフェクトを追加
+    "full_restoration": FullRestorationEffect,
+    "invisibility": InvisibilityEffect,  # 新しいエフェクトを追加
 }

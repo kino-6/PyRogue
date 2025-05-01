@@ -114,6 +114,10 @@ class Enemy(Character):
         pass
 
     def can_see_player(self, game):
+        player = game.get_player()
+        if not player or player.is_invisible:  # 透明化状態のプレイヤーは見えない
+            return False
+
         # 敵が現在どのタイプのセルにいるかを判断
         current_room_id = game.game_map.room_info[self.y][self.x]
         player_position = game.get_player_position()
@@ -199,6 +203,9 @@ class EnemyBehavior:
 class ChasePlayerBehavior(EnemyBehavior):
     def determine_action(self, enemy: Enemy, game: Game):
         player = game.get_player()
+        if not player or player.is_invisible:  # 透明化状態のプレイヤーは追跡しない
+            return None
+
         player_pos = (player.x, player.y)
         enemy_pos = (enemy.x, enemy.y)
 

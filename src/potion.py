@@ -1,5 +1,5 @@
 from item import Item
-from effect import StrengthEffect, RegenerationEffect, ProtectionEffect, FullRestorationEffect
+from effect import StrengthEffect, RegenerationEffect, ProtectionEffect, FullRestorationEffect, InvisibilityEffect
 import random
 
 class Potion(Item):
@@ -31,12 +31,13 @@ class Potion(Item):
             effect = ProtectionEffect()
         elif self.effect_type == "full_restoration":
             effect = FullRestorationEffect()
+        elif self.effect_type == "invisibility":
+            effect = InvisibilityEffect(duration=self.effect_duration)
         else:
             return
 
         effect.apply_effect(character)
         character.add_logger(f"You drink the {self.name}.")
-        character.inventory.remove_item(self)
 
     def appraisal(self):
         """鑑定時の処理"""

@@ -30,6 +30,8 @@ class Character(Entity):
         self.hit_bonus = 0
         self.effects = []  # エフェクトのリストを保持
         self.is_player = False  # デフォルトはFalse
+        self.is_invisible = False  # 透明化状態を追加
+        self.evasion_bonus = 0  # 回避率ボーナスを追加
 
     def get_looped_element(self, idx, looped_list):
         looped_idx = idx % len(looped_list)
@@ -353,4 +355,6 @@ class Character(Entity):
                 effect_symbols.append("S")
             elif isinstance(effect, ProtectionEffect):
                 effect_symbols.append("P")
+        if self.is_invisible:
+            effect_symbols.append("I")  # 透明状態を表示
         return effect_symbols

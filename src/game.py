@@ -755,6 +755,7 @@ class Game:
         selected_potion = self.wait_for_item_selection(potion_items)
         if selected_potion:
             selected_potion.use(character)
+            character.inventory.remove_item(selected_potion)
             self.renew_logger_window(f"You drink the {selected_potion.display_name}")
             return True
         else:
