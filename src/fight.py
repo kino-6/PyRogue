@@ -4,7 +4,19 @@ from enemy import Enemy
 from game import Game
 from weapon import Weapon
 import random
+from typing import Tuple
 
+def roll_dice(ndice: int, nsides: int) -> int:
+    """Roll a specified number of dice with a given number of sides.
+    
+    Args:
+        ndice (int): Number of dice to roll
+        nsides (int): Number of sides on each die
+        
+    Returns:
+        int: Total of all dice rolls
+    """
+    return sum(random.randint(1, nsides) for _ in range(ndice))
 
 class Fight:
     def __init__(self, player: Character, enemies: Character, game: Game, logger):
@@ -13,9 +25,19 @@ class Fight:
         self.game = game
         self.logger = logger
 
-    def attack(self, attacker: Character, defender: Character, is_throw=False):
+    def attack(self, attacker: Character, defender: Character, is_throw=False) -> Tuple[bool, int]:
+        """Perform an attack between two characters.
+        
+        Args:
+            attacker (Character): The character performing the attack
+            defender (Character): The character being attacked
+            is_throw (bool): Whether this is a thrown attack
+            
+        Returns:
+            Tuple[bool, int]: (did_hit, damage_dealt)
+        """
         # 攻撃の成功を判定
-        did_hit, damage = self.roll_em(attacker, defender, is_throw=False)
+        did_hit, damage = self.roll_em(attacker, defender, is_throw)
 
         if did_hit:
             is_killed = defender.take_damage(damage)
@@ -26,10 +48,10 @@ class Fight:
             else:
                 self.handle_hit(defender)
 
-            return True
+            return True, damage
         else:
             self.handle_miss(attacker, defender)
-            return False
+            return False, 0
 
     def roll_em(self, attacker: Character, defender: Character, is_throw=False):
         print(f"atk: {attacker.status.name}, def: {defender.status.name}")
@@ -50,7 +72,7 @@ class Fight:
         for dmg in weapon_info['attack_damage'].split("+"):
             if self.swing(attacker_level, def_armor, weapon_info['hit_bonus']):
                 ndice, nsides = map(int, dmg.split("d"))
-                roll_result = self.roll_dice(ndice, nsides)
+                roll_result = roll_dice(ndice, nsides)
                 damage = self._calculate_damage(
                     base_damage=base_dmg,
                     roll_result=roll_result,
@@ -167,10 +189,6 @@ class Fight:
         res = random.randint(1, 20)
         need = (20 - attacker_level) - defender_armor
         return res + hit_bonus >= need
-
-    def roll_dice(self, ndice, nsides):
-        # ndice: ダイスの数, nsides: ダイスの面の数
-        return sum(random.randint(1, nsides) for _ in range(ndice))
 
     def calculate_hit_chance(self, attacker: Character, defender: Character):
         # 基本命中率: 攻撃者の攻撃力と防御者の防御力を考慮

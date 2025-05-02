@@ -142,6 +142,61 @@ class InvisibilityEffect(SpecialEffect):
             # 透明化中は敵から見つかりにくくなる
             character.evasion_bonus = 50  # 回避率を上昇
 
+class PoisonEffect(SpecialEffect):
+    def __init__(self, duration=5, damage_per_turn=1):
+        super().__init__()
+        self.duration = duration
+        self.damage_per_turn = damage_per_turn
+        self.turns_passed = 0
+
+    def apply_effect(self, character):
+        """毒エフェクトを適用"""
+        super().apply_effect(character)
+        character.add_effect(self)
+        character.add_logger("You feel poisoned!")
+
+    def remove_effect(self, character):
+        """毒エフェクトを解除"""
+        super().remove_effect(character)
+        character.remove_effect(self)
+        character.add_logger("The poison wears off.")
+
+    def on_turn(self, character):
+        """ターン毎の毒ダメージ"""
+        self.turns_passed += 1
+        if self.turns_passed >= self.duration:
+            self.remove_effect(character)
+        else:
+            character.take_damage(self.damage_per_turn)
+            character.add_logger("The poison hurts!")
+
+class WeaknessEffect(SpecialEffect):
+    def __init__(self, duration=3):
+        super().__init__()
+        self.duration = duration
+        self.turns_passed = 0
+        self.strength_reduction = 2
+
+    def apply_effect(self, character):
+        """弱体化エフェクトを適用"""
+        super().apply_effect(character)
+        character.add_effect(self)
+        character.status.strength -= self.strength_reduction
+        character.add_logger("You feel weakened!")
+
+    def remove_effect(self, character):
+        """弱体化エフェクトを解除"""
+        super().remove_effect(character)
+        character.remove_effect(self)
+        character.status.strength += self.strength_reduction
+        character.add_logger("You feel your strength returning.")
+
+    def on_turn(self, character):
+        """ターン毎の処理"""
+        self.turns_passed += 1
+        if self.turns_passed >= self.duration:
+            self.remove_effect(character)
+
 EFFECT_MAP = {
     "no_effect": NoEffect,
     "add_strength": StrengthEffect,
@@ -153,5 +208,7 @@ EFFECT_MAP = {
     "keep_health": KeepHealthEffect,
     "enemy_search": EnemySearchEffect,
     "full_restoration": FullRestorationEffect,
-    "invisibility": InvisibilityEffect,  # 新しいエフェクトを追加
+    "invisibility": InvisibilityEffect,
+    "poison": PoisonEffect,
+    "weakness": WeaknessEffect,
 }

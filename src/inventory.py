@@ -9,7 +9,11 @@ class Inventory:
         self.items.append(item)
 
     def remove_item(self, item):
-        self.items.remove(item)
+        if item in self.items:
+            self.items.remove(item)
+
+    def has_item(self, item):
+        return item in self.items
 
     def __str__(self):
-        return ", ".join(item.display_name for item in self.items)
+        return str(self.items)

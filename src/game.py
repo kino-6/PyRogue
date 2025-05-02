@@ -817,82 +817,72 @@ class Game:
 
     def throw_item(self, character, item, direction):
         """アイテムを投げる"""
-        dx, dy = direction
-        current_x, current_y = character.x, character.y
-        next_x, next_y = current_x + dx, current_y + dy
-        max_attempts = 32  # 最大試行回数
-        attempts = 0
+        if not character.inventory.has_item(item):
+            return False
 
-        # 投げたアイテムをインベントリから削除
+        # 装備品の場合、装備を解除する
+        if hasattr(item, 'is_equipped') and item.is_equipped:
+            item.unequip(character)
+
+        # インベントリからアイテムを削除
         character.inventory.remove_item(item)
 
-        # アイテムが壁に当たるか、敵に当たるまで移動
-        while attempts < max_attempts:
-            # 壁に当たった場合
-            if not self.is_walkable(next_x, next_y):
-                # 現在の位置と前の位置をチェック
-                for check_x, check_y in [(next_x, next_y), (current_x, current_y)]:
-                    if self.is_walkable(check_x, check_y):
-                        # ポーションの場合、壁に当たって砕ける
-                        if hasattr(item, 'effect_type') and item.effect_type:
-                            self.renew_logger_window(f"The {item.name} shatters against the wall!")
-                            return
-                        # その他のアイテムは落ちる
-                        item.x, item.y = check_x, check_y
-                        self.add_entity(item)
-                        return
-                # 空いている場所が見つからない場合、次の試行へ
-                attempts += 1
-                # 8方向を順番にチェック
-                for dx, dy in [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]:
-                    check_x, check_y = current_x + dx, current_y + dy
-                    if self.is_walkable(check_x, check_y):
-                        item.x, item.y = check_x, check_y
-                        self.add_entity(item)
-                        return
-                # 空いている場所が見つからない場合、アイテムを消去
-                self.renew_logger_window(f"The {item.name} disappears into the void!")
-                return
+        # 投げる方向に壁があるかチェック
+        current_x, current_y = character.x, character.y
+        target_x, target_y = current_x + direction[0], current_y + direction[1]
 
-            # 敵に当たった場合
-            for entity in self.get_entities_at_position(next_x, next_y):
-                if isinstance(entity, Character) and not entity.is_player:
-                    # ポーションの場合、敵に効果を適用
-                    if hasattr(item, 'effect_type') and item.effect_type:
-                        effect_class = EFFECT_MAP.get(item.effect_type)
-                        if effect_class:
-                            effect = effect_class()
-                            effect.apply_effect(entity)
-                            self.renew_logger_window(f"The {item.name} hits {entity.status.name}!")
-                            return
-                    # その他のアイテムは敵にダメージを与える
-                    damage = self.calculate_throw_damage(item)
-                    is_dead = entity.take_damage(damage)
-                    self.renew_logger_window(f"The {item.name} hits {entity.status.name} for {damage} damage!")
-                    if is_dead:
-                        entity.die(self)
-                    return
+        # 壁に当たるまで投げる
+        while True:
+            if not self.game_map.is_walkable(target_x, target_y):
+                # 壁に当たった場合、その前の位置にアイテムを配置
+                drop_x, drop_y = target_x - direction[0], target_y - direction[1]
+                
+                # その位置にアイテムがあるかチェック
+                if not any(isinstance(e, Item) for e in self.get_entities_at_position(drop_x, drop_y)):
+                    # アイテムがない場合はその位置に配置
+                    item.x, item.y = drop_x, drop_y
+                    self.add_entity(item)
+                    return True
+                else:
+                    # アイテムがある場合は周囲16マスの空いているマスを探す
+                    for radius in range(1, 5):  # 1から4までの半径で探索
+                        for dx in range(-radius, radius + 1):
+                            for dy in range(-radius, radius + 1):
+                                # 現在の半径の外側のマスのみをチェック
+                                if abs(dx) == radius or abs(dy) == radius:
+                                    check_x, check_y = drop_x + dx, drop_y + dy
+                                    if (self.game_map.is_walkable(check_x, check_y) and 
+                                        not any(isinstance(e, Item) for e in self.get_entities_at_position(check_x, check_y))):
+                                        item.x, item.y = check_x, check_y
+                                        self.add_entity(item)
+                                        return True
+                    
+                    # 空いているマスが見つからない場合はアイテムを消去
+                    self.renew_logger_window(f"The {item.display_name} disappears into the void!")
+                    return True
 
-            # 他のアイテムに当たった場合、周囲を探索
-            for entity in self.get_entities_at_position(next_x, next_y):
-                if isinstance(entity, Item):
-                    attempts += 1
-                    # 8方向を順番にチェック
-                    for dx, dy in [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]:
-                        check_x, check_y = next_x + dx, next_y + dy
-                        if self.is_walkable(check_x, check_y):
-                            item.x, item.y = check_x, check_y
-                            self.add_entity(item)
-                            return
-                    # 空いている場所が見つからない場合、次の試行へ
-                    break
+            # 敵に当たったかチェック
+            for enemy in self.get_entities_at_position(target_x, target_y):
+                if isinstance(enemy, Character) and not enemy.is_player:
+                    # 敵に当たった場合、ダメージを与える
+                    damage = 1  # 基本ダメージ
+                    if hasattr(item, 'throw_dice'):
+                        damage = self.calculate_throw_damage(item)
+                    enemy.take_damage(damage)
+                    self.renew_logger_window(f"{character.status.name} threw {item.display_name} at {enemy.status.name} for {damage} damage!")
 
-            # 次の位置へ移動
-            current_x, current_y = next_x, next_y
-            next_x, next_y = current_x + dx, current_y + dy
+                    # アイテムにエフェクトがある場合は適用
+                    if hasattr(item, 'effect') and item.effect is not None:
+                        item.effect.apply_effect(enemy)
+                        self.renew_logger_window(f"The {item.display_name}'s effect was applied to {enemy.status.name}!")
 
-        # 最大試行回数を超えた場合、アイテムを消去
-        self.renew_logger_window(f"The {item.name} disappears into the void!")
+                    return True
+
+            # 次の位置に移動
+            target_x += direction[0]
+            target_y += direction[1]
+
+        return False
 
     def calculate_throw_damage(self, item):
         """投げたアイテムのダメージを計算"""
