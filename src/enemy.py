@@ -21,6 +21,9 @@ class Enemy(Character):
         self.chase_turns = 0
 
     def update(self, game: Game):
+        if not self.can_act:  # 行動不能状態の場合は何もしない
+            return None
+
         if self.can_see_player(game):
             self.behavior = ChasePlayerBehavior()
             # 追跡ターンをchase_powerベースでリセット

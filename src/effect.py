@@ -39,7 +39,7 @@ class AllHitEffect(SpecialEffect):
         character.hit_bonus -= 99
 
 class RegenerationEffect(SpecialEffect):
-    def __init__(self, heal_amount=const.HEALING_AMOUNT, duration=15):
+    def __init__(self, heal_amount=const.REGENERATION_HEAL_AMOUNT, duration=const.REGENERATION_DURATION):
         super().__init__()
         self.heal_amount = heal_amount
         self.duration = duration
@@ -114,7 +114,7 @@ class FullRestorationEffect(SpecialEffect):
         pass
 
 class InvisibilityEffect(SpecialEffect):
-    def __init__(self, duration=20):
+    def __init__(self, duration=const.INVISIBILITY_DURATION):
         super().__init__()
         self.duration = duration
         self.turns_passed = 0
@@ -143,10 +143,9 @@ class InvisibilityEffect(SpecialEffect):
             character.evasion_bonus = 50  # 回避率を上昇
 
 class PoisonEffect(SpecialEffect):
-    def __init__(self, duration=5, damage_per_turn=1):
+    def __init__(self, duration=const.POISON_DURATION):
         super().__init__()
         self.duration = duration
-        self.damage_per_turn = damage_per_turn
         self.turns_passed = 0
 
     def apply_effect(self, character):
@@ -167,8 +166,10 @@ class PoisonEffect(SpecialEffect):
         if self.turns_passed >= self.duration:
             self.remove_effect(character)
         else:
-            character.take_damage(self.damage_per_turn)
-            character.add_logger("The poison hurts!")
+            # 最大HPの1/16をダメージとして与える
+            damage = max(1, character.status.max_hp // const.POISON_DAMAGE_DIVISOR)
+            character.take_damage(damage)
+            character.add_logger(f"The poison hurts! You take {damage} damage. ({self.turns_passed}/{self.duration} turns)")
 
 class WeaknessEffect(SpecialEffect):
     def __init__(self, duration=3):
@@ -197,6 +198,34 @@ class WeaknessEffect(SpecialEffect):
         if self.turns_passed >= self.duration:
             self.remove_effect(character)
 
+class SleepEffect(SpecialEffect):
+    def __init__(self, duration=const.SLEEP_DURATION):
+        super().__init__()
+        self.duration = duration
+        self.turns_passed = 0
+
+    def apply_effect(self, character):
+        """睡眠エフェクトを適用"""
+        super().apply_effect(character)
+        character.add_effect(self)
+        character.add_logger("You feel drowsy...")
+        character.can_act = False  # 行動不能状態にする
+
+    def remove_effect(self, character):
+        """睡眠エフェクトを解除"""
+        super().remove_effect(character)
+        character.remove_effect(self)
+        character.can_act = True  # 行動可能状態に戻す
+        character.add_logger("You wake up!")
+
+    def on_turn(self, character):
+        """ターン毎の処理"""
+        self.turns_passed += 1
+        if self.turns_passed >= self.duration:
+            self.remove_effect(character)
+        else:
+            character.add_logger(f"You are asleep... ({self.turns_passed}/{self.duration} turns)")
+
 EFFECT_MAP = {
     "no_effect": NoEffect,
     "add_strength": StrengthEffect,
@@ -210,5 +239,5 @@ EFFECT_MAP = {
     "full_restoration": FullRestorationEffect,
     "invisibility": InvisibilityEffect,
     "poison": PoisonEffect,
-    "weakness": WeaknessEffect,
+    "sleep": SleepEffect
 }

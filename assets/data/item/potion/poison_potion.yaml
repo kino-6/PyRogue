@@ -1,0 +1,8 @@
+type: "Potion"
+name: "Poison Potion"
+char: "!"
+color: "green"
+undefined_name: "Green Potion?"
+effect: "poison"
+duration: 15
+flavor_text: "A potion that causes poison damage over time. Handle with care." 

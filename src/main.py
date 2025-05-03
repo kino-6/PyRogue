@@ -94,6 +94,9 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
 
     # アクション名→処理関数のディスパッチテーブル
     def do_move():
+        if not player.can_act:
+            game.renew_logger_window("You can't move while asleep!")
+            return False
         action, new_x, new_y = input_handler.action
         dx = new_x - player.x
         dy = new_y - player.y
@@ -102,6 +105,9 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         return True
 
     def do_attack():
+        if not player.can_act:
+            game.renew_logger_window("You can't attack while asleep!")
+            return False
         enemies = [
             entity for entities in game.entity_positions.values() for entity in entities if isinstance(entity, Enemy)
         ]
@@ -115,26 +121,47 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         return False
 
     def do_descend_stairs():
+        if not player.can_act:
+            game.renew_logger_window("You can't descend stairs while asleep!")
+            return False
         if game.player_on_stairs():
             game.enter_new_dungeon(enemy_manager)
         return False
 
     def do_rest():
+        if not player.can_act:
+            game.renew_logger_window("You can't rest while asleep!")
+            return False
         return True
 
     def do_eat_food():
+        if not player.can_act:
+            game.renew_logger_window("You can't eat while asleep!")
+            return False
         return game.handle_food_selection(player)
 
     def do_wield_a_weapon():
+        if not player.can_act:
+            game.renew_logger_window("You can't wield a weapon while asleep!")
+            return False
         return game.handle_weapon_selection(player)
 
     def do_wear_armor():
+        if not player.can_act:
+            game.renew_logger_window("You can't wear armor while asleep!")
+            return False
         return game.handle_armor_selection(player)
 
     def do_put_on_a_ring():
+        if not player.can_act:
+            game.renew_logger_window("You can't put on a ring while asleep!")
+            return False
         return game.handle_ring_selection(player)
 
     def do_inspect_item():
+        if not player.can_act:
+            game.renew_logger_window("You can't inspect items while asleep!")
+            return False
         game.handle_inspect_item(game.get_player())
         return False
 
@@ -157,6 +184,8 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
                 potion = potion_manager.get_random_potion()
                 if potion:
                     game.get_player().inventory.add_item(potion)
+        
+        pygame.time.wait(10)
         return False
 
     def do_console_mode():

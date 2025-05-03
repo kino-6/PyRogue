@@ -100,6 +100,15 @@ MORETIME = 150
 RECOVERY_AMOUNT_CONF = 32  # max_hp / this
 RECOVERY_INTERVAL = 10
 
+# effects
+POISON_DURATION = 15  # 毒の持続ターン数
+POISON_DAMAGE_DIVISOR = 16  # 最大HPを割る数（1/16のダメージ）
+SLEEP_DURATION = 5  # 睡眠の持続ターン数
+STRENGTH_DURATION = 20  # 力の持続ターン数
+INVISIBILITY_DURATION = 20  # 透明化の持続ターン数
+REGENERATION_DURATION = 15  # 再生の持続ターン数
+REGENERATION_HEAL_AMOUNT = 2  # 再生の回復量
+
 # Border color thresholds
 BORDER_HP_CRITICAL_THRESHOLD = 1/8  # HPが1/8以下の場合に赤枠
 BORDER_HP_WARNING_THRESHOLD = 1/2    # HPが半分以下の場合に黄枠

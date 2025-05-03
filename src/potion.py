@@ -1,5 +1,5 @@
 from item import Item
-from effect import StrengthEffect, RegenerationEffect, ProtectionEffect, FullRestorationEffect, InvisibilityEffect
+from effect import StrengthEffect, RegenerationEffect, ProtectionEffect, FullRestorationEffect, InvisibilityEffect, PoisonEffect, SleepEffect
 import random
 
 class Potion(Item):
@@ -36,6 +36,10 @@ class Potion(Item):
             effect = FullRestorationEffect()
         elif self.effect_type == "invisibility":
             effect = InvisibilityEffect(duration=self.effect_duration)
+        elif self.effect_type == "poison":
+            effect = PoisonEffect(duration=self.effect_duration)
+        elif self.effect_type == "sleep":
+            effect = SleepEffect(duration=self.effect_duration)
         else:
             return
 

@@ -1,0 +1,8 @@
+type: "Potion"
+name: "Sleep Potion"
+char: "!"
+color: "blue"
+undefined_name: "Blue Potion?"
+effect: "sleep"
+duration: 5
+flavor_text: "A potion that induces sleep. Useful for escaping from enemies." 

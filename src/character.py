@@ -9,7 +9,7 @@ from typing import Dict, Optional
 from weapon import Weapon
 from armor import Armor
 from ring import Ring
-from effect import RegenerationEffect, StrengthEffect, ProtectionEffect
+from effect import RegenerationEffect, StrengthEffect, ProtectionEffect, SleepEffect, InvisibilityEffect, PoisonEffect
 import pygame
 import sys
 
@@ -29,6 +29,7 @@ class Character(Entity):
         self.enemy_search_active = False
         self.damage_bonus = 0
         self.hit_bonus = 0
+        self.can_act = True  # 行動可能フラグを追加
         self.effects = []  # エフェクトのリストを保持
         self.is_player = False  # デフォルトはFalse
         self.is_invisible = False  # 透明化状態を追加
@@ -407,11 +408,17 @@ class Character(Entity):
         effect_symbols = []
         for effect in self.effects:
             if isinstance(effect, RegenerationEffect):
-                effect_symbols.append("R")
+                effect_symbols.append("Re")
             elif isinstance(effect, StrengthEffect):
-                effect_symbols.append("S")
+                effect_symbols.append("St")
             elif isinstance(effect, ProtectionEffect):
-                effect_symbols.append("P")
+                effect_symbols.append("Pr")
+            elif isinstance(effect, SleepEffect):
+                effect_symbols.append("Sl")
+            elif isinstance(effect, InvisibilityEffect):
+                effect_symbols.append("In")
+            elif isinstance(effect, PoisonEffect):
+                effect_symbols.append("Po")
         if self.is_invisible:
-            effect_symbols.append("I")  # 透明状態を表示
+            effect_symbols.append("In")  # 透明状態を表示
         return effect_symbols
