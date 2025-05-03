@@ -4,26 +4,29 @@ import constants as const
 
 class Status:
     def __init__(self, data: dict):
-        self.char = data["char"]
-        self.name = data["name"]
-        self.max_hp = data["max_hp"]
-        self.strength = data["strength"]
-        self.exp = data["exp"]
-        self.level = data["level"]
-        self.armor = data["armor"]
-        self.color = data["color"]
-        self.exp_level = data["exp_level"]
-        self.chase_power = data.get("chase_power", 0)
+        self.name = data.get("name", "Unknown")
+        self.char = data.get("char", "?")
+        self.color = data.get("color", "white")
+        self.level = data.get("level", 1)
+        self.max_hp = data.get("max_hp", 10)
+        self.current_hp = self.max_hp
+        self.strength = data.get("strength", 1)
+        self.armor = data.get("armor", 0)
+        self.exp = data.get("exp", 0)
+        self.exp_level = data.get("exp_level", 1)
+        self.next_exp = 0
+        self.gold = data.get("gold", 0)
+        self.food_left = data.get("food_left", const.STOMACHSIZE)
+        self.based_hit_rate = data.get("based_hit_rate", const.BASED_HIT_RATE)
+        
+        # ダイス情報の追加
+        self.dice_sides = data.get("dice_sides", 4)  # デフォルトは4面ダイス
+        self.dice_count = data.get("dice_count", 1)  # デフォルトは1個
 
         # calc
-        self.current_hp = self.max_hp
-        self.gold = 0
-        self.next_exp = 10
-        self.food_left = const.STOMACHSIZE
-
         self.attack_power = self.strength
         self.defense_power = self.armor
-        self.based_hit_rate = const.BASED_HIT_RATE
+        self.chase_power = data.get("chase_power", 0)
 
     def __repr__(self):
         message = f"{self.name}: {self.current_hp}/{self.max_hp}"
@@ -56,6 +59,8 @@ class Status:
             "armor": self.armor,
             "color": self.color,
             "exp_level": self.exp_level,
-            "chase_power": self.chase_power
+            "chase_power": self.chase_power,
+            "dice_sides": self.dice_sides,
+            "dice_count": self.dice_count
         }
         return Status(data)

@@ -8,3 +8,5 @@ armor: 9
 max_hp: 8
 color: "dodgerblue"
 chase_power: 1  # ほぼ追跡しない
+dice_sides: 4
+dice_count: 1

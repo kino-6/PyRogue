@@ -23,7 +23,19 @@ class Draw:
 
         map_height = const.WINDOW_SIZE_H - log_window_height  # 画面全体の高さからログウィンドウ分を引く
 
-        self.draw_window(0, 5, width, map_height)
+        # プレイヤーのHP状態に応じて縁取りの色を決定
+        player = self.game.get_player()
+        border_color = const.BORDER_COLOR_NORMAL  # デフォルトは白
+        
+        if player and player.status.current_hp > 0:
+            hp_ratio = player.status.current_hp / player.status.max_hp
+            if hp_ratio <= const.BORDER_HP_CRITICAL_THRESHOLD:  # HPが1/16以下の場合
+                border_color = const.BORDER_COLOR_CRITICAL
+            elif hp_ratio <= const.BORDER_HP_WARNING_THRESHOLD:  # HPが半分以下の場合
+                border_color = const.BORDER_COLOR_WARNING
+
+        # 画面全体を描画
+        self.draw_window(0, 0, width, map_height, border_color=border_color, border_width=2)
         for y in range(len(self.game_map.tiles)):
             for x in range(len(self.game_map.tiles[y])):
                 pixel_y = y * const.GRID_SIZE
@@ -151,6 +163,17 @@ class Draw:
         # 画面全体の高さからログウィンドウの高さを引いた位置に表示
         window_y = const.WINDOW_SIZE_H - window_height
 
+        # プレイヤーのHP状態に応じて縁取りの色を決定
+        player = self.game.get_player()
+        border_color = const.BORDER_COLOR_NORMAL  # デフォルトは白
+        
+        if player and player.status.current_hp > 0:
+            hp_ratio = player.status.current_hp / player.status.max_hp
+            if hp_ratio <= const.BORDER_HP_CRITICAL_THRESHOLD:  # HPが1/16以下の場合
+                border_color = const.BORDER_COLOR_CRITICAL
+            elif hp_ratio <= const.BORDER_HP_WARNING_THRESHOLD:  # HPが半分以下の場合
+                border_color = const.BORDER_COLOR_WARNING
+
         # 折り返しを考慮して、下からn行分だけを表示
         wrapped_lines = []
         log_colors = []
@@ -167,7 +190,7 @@ class Draw:
         display_lines = wrapped_lines[-n:]
 
         # 描画
-        self.draw_window(0, window_y, window_width, window_height)
+        self.draw_window(0, window_y, window_width, window_height, border_color=border_color)
         log_y = window_y + 5
         for line, color in display_lines:
             log_text = log_font.render(line, True, color)
@@ -191,9 +214,20 @@ class Draw:
         window_height = const.WINDOW_SIZE_H
         status_window_height = const.FONT_SIZE * 12
 
+        # プレイヤーのHP状態に応じて縁取りの色を決定
+        border_color = const.BORDER_COLOR_NORMAL  # デフォルトは白
+        
+        if player and player.status.current_hp > 0:
+            hp_ratio = player.status.current_hp / player.status.max_hp
+            if hp_ratio <= const.BORDER_HP_CRITICAL_THRESHOLD:  # HPが1/16以下の場合
+                border_color = const.BORDER_COLOR_CRITICAL
+            elif hp_ratio <= const.BORDER_HP_WARNING_THRESHOLD:  # HPが半分以下の場合
+                border_color = const.BORDER_COLOR_WARNING
+
         # ステータスウィンドウの位置を調整
         self.draw_window_with_logs(
-            x, 0, window_width, status_window_height, status_txt, log_colors, font_size=const.LOG_FONT_SIZE - 3
+            x, 0, window_width, status_window_height, status_txt, log_colors, 
+            border_color=border_color, font_size=const.LOG_FONT_SIZE - 3
         )
 
     def draw_inventory_window(self, character: Character):
@@ -205,8 +239,20 @@ class Draw:
         window_height = const.WINDOW_SIZE_H
         status_window_height = const.FONT_SIZE * 8
 
+        # プレイヤーのHP状態に応じて縁取りの色を決定
+        player = self.game.get_player()
+        border_color = const.BORDER_COLOR_NORMAL  # デフォルトは白
+        
+        if player and player.status.current_hp > 0:
+            hp_ratio = player.status.current_hp / player.status.max_hp
+            if hp_ratio <= const.BORDER_HP_CRITICAL_THRESHOLD:  # HPが1/16以下の場合
+                border_color = const.BORDER_COLOR_CRITICAL
+            elif hp_ratio <= const.BORDER_HP_WARNING_THRESHOLD:  # HPが半分以下の場合
+                border_color = const.BORDER_COLOR_WARNING
+
         self.draw_window_with_logs(
-            x, status_window_height, window_width, window_height, inventory_txt, log_colors, font_size=16
+            x, status_window_height, window_width, window_height, inventory_txt, log_colors, 
+            border_color=border_color, font_size=16
         )
 
     def wrap_text(self, text, font, max_width):

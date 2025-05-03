@@ -8,3 +8,5 @@ armor: 9
 max_hp: 24
 color: "white"
 chase_power: 32  # かなりしつこく追跡
+dice_sides: 6
+dice_count: 1

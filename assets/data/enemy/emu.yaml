@@ -1,6 +1,6 @@
 char: "E"
 name: "emu"
-strength: 10
+strength: 2
 exp: 2
 level: 1
 exp_level: 1
@@ -8,3 +8,5 @@ armor: 7
 max_hp: 8
 color: "white"
 chase_power: 3  # それなりに追跡
+dice_sides: 3
+dice_count: 2

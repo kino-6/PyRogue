@@ -1,6 +1,6 @@
 char: "K"
 name: "kestrel"
-strength: 5
+strength: 3
 exp: 1
 level: 1
 exp_level: 1
@@ -8,3 +8,5 @@ armor: 7
 max_hp: 8
 color: "darksalmon"
 chase_power: 1  # ほぼ追跡しない
+dice_sides: 2
+dice_count: 2

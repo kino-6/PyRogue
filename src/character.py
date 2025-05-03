@@ -11,6 +11,7 @@ from armor import Armor
 from ring import Ring
 from effect import RegenerationEffect, StrengthEffect, ProtectionEffect
 import pygame
+import sys
 
 
 class Character(Entity):
@@ -78,13 +79,16 @@ class Character(Entity):
         return self.hp > 0
 
     def take_damage(self, damage):
-        is_dead = self.status.current_hp <= 0
-        if is_dead:
+        # 現在のHPからダメージを引く
+        self.status.current_hp -= damage
+        
+        # HPが0以下になった場合の処理
+        if self.status.current_hp <= 0:
             self.status.current_hp = 0
             self.add_logger(f"{self.status.name} was defeated!")
-        # 計算継続可能ならそのまま
-        self.status.current_hp -= damage
-        return is_dead
+            return True  # 死亡したことを返す
+            
+        return False  # 生存していることを返す
 
     def heal_damage(self, amount):
         # HPを回復し、最大HPを超えないようにする
@@ -158,8 +162,8 @@ class Character(Entity):
         self.status.exp_level += 1
 
         # ステータス上昇値の計算
-        hp_gain = random.randint(1, 8)
-        strength_gain = random.randint(1, 3)
+        hp_gain = random.randint(1, 5)
+        strength_gain = random.randint(1, 2)
 
         # ステータスの更新
         self.status.max_hp += hp_gain
@@ -180,8 +184,8 @@ class Character(Entity):
             self.status.exp_level -= 1
 
             # ステータス減少値の計算
-            hp_loss = random.randint(1, 8)  # 1d8のHP減少
-            strength_loss = random.randint(1, 3)  # 1-3の攻撃力減少
+            hp_loss = random.randint(1, 5)
+            strength_loss = random.randint(1, 2)  # 1-3の攻撃力減少
             # defense_loss = random.randint(0, 1)  # 0-1の防御力減少
 
             # ステータスの更新（最低値を下回らないように）
@@ -247,8 +251,57 @@ class Character(Entity):
             self.status.current_hp = 0
             self.add_logger("You have been defeated...")
             
-            # 画面を徐々に暗転
+            # 最後のゲーム状態を描画
+            game.drawer.draw_game_map()
+            game.drawer.draw_entity(game.entity_positions.values())
+            game.drawer.draw_status_window(self.status)
+            game.drawer.draw_inventory_window(self)
+            game.drawer.draw_log_window(game.log_messages)
+            pygame.display.flip()
+            
+            # プレイヤーの入力を待つ
             screen = pygame.display.get_surface()
+            font = pygame.font.Font(None, 48)  # フォントサイズを大きく
+            text = font.render("Press ENTER to continue...", True, (255, 255, 255))
+            text_rect = text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+            
+            # 縁取り用の黒いテキストを8方向にずらして描画
+            outline_offset = 2
+            for dx, dy in [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]:
+                outline_rect = text_rect.copy()
+                outline_rect.x += dx * outline_offset
+                outline_rect.y += dy * outline_offset
+                outline_text = font.render("Press ENTER to continue...", True, (0, 0, 0))
+                screen.blit(outline_text, outline_rect)
+            
+            # 点滅用のカウンター
+            blink_counter = 0
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                            waiting = False
+                    elif event.type == pygame.QUIT:  # ウィンドウの×ボタン
+                        pygame.quit()
+                        sys.exit()
+                
+                # 点滅処理（30フレームごとに表示/非表示を切り替え）
+                blink_counter = (blink_counter + 1) % 60
+                if blink_counter < 30:
+                    # 縁取りを描画
+                    for dx, dy in [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]:
+                        outline_rect = text_rect.copy()
+                        outline_rect.x += dx * outline_offset
+                        outline_rect.y += dy * outline_offset
+                        outline_text = font.render("Press ENTER to continue...", True, (0, 0, 0))
+                        screen.blit(outline_text, outline_rect)
+                    # メインテキストを描画
+                    screen.blit(text, text_rect)
+                pygame.display.flip()
+                pygame.time.wait(10)
+            
+            # 画面を徐々に暗転
             dark_surface = pygame.Surface(screen.get_size())
             dark_surface.fill((0, 0, 0))
             
@@ -275,6 +328,7 @@ class Character(Entity):
             restart_rect = restart_text.get_rect(center=(screen.get_width() // 2, screen.get_height() * 3 // 4))
             
             # 死亡画面の表示
+            screen.fill((0, 0, 0))  # 画面を黒でクリア
             screen.blit(rip_text, rip_rect)
             screen.blit(level_text, level_rect)
             screen.blit(depth_text, depth_rect)
@@ -288,6 +342,9 @@ class Character(Entity):
                     if event.type == pygame.KEYDOWN:
                         if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
                             waiting = False
+                    elif event.type == pygame.QUIT:  # ウィンドウの×ボタン
+                        pygame.quit()
+                        sys.exit()
                 pygame.time.wait(10)
             
             # ゲームを再スタート

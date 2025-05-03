@@ -8,3 +8,5 @@ armor: 8
 max_hp: 16
 color: "darkmagenta"
 chase_power: 1  # ほぼ追跡しない
+dice_sides: 6
+dice_count: 1

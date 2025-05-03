@@ -8,3 +8,5 @@ armor: 7
 max_hp: 56
 color: "white"
 chase_power: 1  # ほぼ追跡しない
+dice_sides: 6
+dice_count: 1

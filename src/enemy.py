@@ -32,18 +32,6 @@ class Enemy(Character):
             self.behavior = RandomWalkBehavior()
 
         action = self.behavior.determine_action(self, game)
-        # print(f" ******** {action} ***************")
-        if action:
-            if action["type"] == "move":
-                # 移動アクションを適用
-                old_pos = (self.x, self.y)
-                self.x = action["new_x"]
-                self.y = action["new_y"]
-                game.update_entity_position(self, old_pos)
-            elif action["type"] == "attack":
-                # 攻撃アクションを適用
-                self.attack(action["target"], game)
-
         return action
 
     def attack(self, target, game):
@@ -62,16 +50,38 @@ class Enemy(Character):
 
     def _roll_attack(self, target):
         """攻撃の成功判定とダメージ計算"""
-        # 基本ダメージ
-        base_damage = self.status.attack_power
+        # 基本ダメージ（筋力の半分）
+        base_dmg = self.status.strength // 2
         
-        # 攻撃の成功判定（簡易版）
-        hit_chance = 70  # 基本命中率
-        did_hit = random.randint(1, 100) <= hit_chance
+        # 命中判定（20面ダイス）
+        res = random.randint(1, 20)
+        # 基本命中率を75%に設定し、レベルと防御力で調整
+        base_hit = 5  # 20面ダイスで75%の確率（5以上）
+        level_bonus = self.status.level  # レベルが上がるほど命中率が上がる
+        # 防御力の影響を軽減（防御力の半分の影響）
+        armor_penalty = target.status.armor // 2
+        need = base_hit - level_bonus + armor_penalty
+        did_hit = res >= need
         
         if did_hit:
-            # ダメージの計算（簡易版）
-            damage = max(1, base_damage - target.status.armor)
+            # ステータスからダイス情報を取得してロール
+            roll_result = sum(random.randint(1, self.status.dice_sides) 
+                            for _ in range(self.status.dice_count))
+            
+            # 基本ダメージにレベル補正を加算（レベルが上がるほど補正が大きくなる）
+            level_bonus = self.status.level // 2
+            base_dmg += level_bonus
+            
+            # 基本ダメージ計算
+            max_damage = int(base_dmg / 2) + roll_result
+            
+            # ばらつきの追加（基本ダメージの1/8）
+            rnd_damage = int(max_damage / 8) + 1
+            max_damage += random.randint(-rnd_damage, rnd_damage)
+            
+            # 防御力による軽減（最小ダメージ1を保証）
+            damage = max(1, max_damage - target.status.armor)
+            
             return True, damage
         else:
             return False, 0

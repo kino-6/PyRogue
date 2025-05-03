@@ -448,7 +448,10 @@ class Game:
                         self.game_map.explored[ny][nx] = True
             
             # プレイヤーがいる部屋全体を探索済みにする
-            self.check_new_room_entry(player.x, player.y)
+            room_id = self.game_map.room_info[player.y][player.x]
+            if room_id is not None:
+                self.explored_rooms.add(room_id)
+                self.game_map.mark_room_explored_by_id(room_id)
 
     def enter_new_dungeon(self, enemy_manager):
         """新しいダンジョンへ移動する"""
@@ -457,6 +460,30 @@ class Game:
         if player is None:
             print("Error: No player found in enter_new_dungeon")
             return
+        
+        # フェードアウト効果
+        screen = pygame.display.get_surface()
+        dark_surface = pygame.Surface(screen.get_size())
+        dark_surface.fill((0, 0, 0))
+        
+        # 徐々に暗くする
+        for alpha in range(0, 255, 5):
+            dark_surface.set_alpha(alpha)
+            screen.blit(dark_surface, (0, 0))
+            pygame.display.flip()
+            pygame.time.wait(20)
+        
+        # 階層情報の表示
+        font = pygame.font.Font(None, 48)
+        floor_text = font.render(f"Floor {player.status.level} -> {player.status.level + 1}", True, (255, 255, 255))
+        text_rect = floor_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+        
+        # 画面を真っ暗にしてから階層情報を表示
+        dark_surface.set_alpha(255)
+        screen.blit(dark_surface, (0, 0))
+        screen.blit(floor_text, text_rect)
+        pygame.display.flip()
+        pygame.time.wait(1000)  # 1秒間表示
         
         # エンティティの位置情報を初期化（プレイヤーを除く）
         old_player_pos = None
@@ -471,6 +498,7 @@ class Game:
         
         # 新しいダンジョンを生成
         self.game_map.init_explored()
+        self.explored_rooms.clear()  # 探索済み部屋のリストもクリア
         
         # プレイヤーを新しい位置に配置
         self.teleport_entity(player)
@@ -488,7 +516,24 @@ class Game:
         
         # プレイヤーの初期位置周辺と部屋を探索済みにする
         self.mark_initial_visibility()
-        self.check_new_room_entry(player.x, player.y)
+        
+        # フェードイン効果
+        for alpha in range(255, 0, -5):
+            # ゲーム画面を描画
+            self.drawer.draw_game_map()
+            self.drawer.draw_entity(self.entity_positions.values())
+            self.drawer.draw_status_window(player.status)
+            self.drawer.draw_inventory_window(player)
+            self.drawer.draw_log_window(self.log_messages)
+            
+            # 暗い画面を重ねる
+            dark_surface.set_alpha(alpha)
+            screen.blit(dark_surface, (0, 0))
+            pygame.display.flip()
+            pygame.time.wait(20)
+        
+        # ログに階層移動のメッセージを追加
+        self.renew_logger_window(f"Descended to Floor {player.status.level}...")
 
     def draw_help(self):
         keymap = self.input_handler.keymap
