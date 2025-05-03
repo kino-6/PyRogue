@@ -162,7 +162,7 @@ class Character(Entity):
         self.status.exp_level += 1
 
         # ステータス上昇値の計算
-        hp_gain = random.randint(1, 5)
+        hp_gain = random.randint(3, 5)
         strength_gain = random.randint(1, 2)
 
         # ステータスの更新
@@ -184,8 +184,8 @@ class Character(Entity):
             self.status.exp_level -= 1
 
             # ステータス減少値の計算
-            hp_loss = random.randint(1, 5)
-            strength_loss = random.randint(1, 2)  # 1-3の攻撃力減少
+            hp_loss = random.randint(3, 5)
+            strength_loss = random.randint(1, 2)  # 1-2の攻撃力減少
             # defense_loss = random.randint(0, 1)  # 0-1の防御力減少
 
             # ステータスの更新（最低値を下回らないように）
@@ -200,7 +200,7 @@ class Character(Entity):
             # ログ出力
             self.add_logger(f"{self.status.name}is the level down...")
             self.add_logger(f"MAX HP -{hp_loss}")
-            self.add_logger(f"Attack -{attack_loss}")
+            self.add_logger(f"Attack -{strength_loss}")
 
     def get_status_info(self):
         """ステータス情報の取得"""
