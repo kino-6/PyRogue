@@ -36,6 +36,7 @@ class Game:
         self.console_mode = False
         self._restart_game = False
         self.console_input = ""
+        self.potion_manager = PotionManager()  # PotionManagerを初期化
 
     def set_drawer(self, drawer):
         self.drawer = drawer
@@ -804,7 +805,12 @@ class Game:
         if selected_potion:
             selected_potion.use(character)
             character.inventory.remove_item(selected_potion)
+            # インベントリ内のポーションの表示名を更新
+            self.potion_manager.update_inventory_potions(character.inventory.items)
             self.renew_logger_window(f"You drink the {selected_potion.display_name}")
+            # インベントリの表示を更新
+            self.drawer.draw_inventory_window(character)
+            pygame.display.flip()
             return True
         else:
             self.renew_logger_window("This is not potion.")
@@ -948,3 +954,7 @@ class Game:
                 total_damage += int(part)
 
         return max(1, total_damage)  # 最低1のダメージを保証
+
+    def get_potion_manager(self):
+        """PotionManagerのインスタンスを返す"""
+        return self.potion_manager

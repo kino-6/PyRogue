@@ -143,11 +143,20 @@ def update_game(game, input_handler, player, enemy_manager, drawer):
         return False
 
     def do_debug_mode():
-        game.identify_all_items()
+        # game.identify_all_items()
         game.spawn_enemy_search_ring_at_player()
         game.explore_around_stairs()
         game.get_player().heal_damage(65535)
         game.get_player().gain_experience(300)
+        
+        # 全ポーションを不確定名称状態で2つずつ生成
+        potion_manager = game.get_potion_manager()
+        for potion_data in potion_manager.potion_data_list:
+            for _ in range(2):  # 各ポーションを2つずつ生成
+                # PotionManagerのget_random_potionを使用して、正しい不確定名称を割り当てる
+                potion = potion_manager.get_random_potion()
+                if potion:
+                    game.get_player().inventory.add_item(potion)
         return False
 
     def do_console_mode():
