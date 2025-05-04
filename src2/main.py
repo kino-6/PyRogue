@@ -6,32 +6,20 @@ from ui.input import InputHandler
 from utils.logger import Logger
 from utils.constants import GameConstants
 from utils.game_initializer import initialize_game
+from ui.input_setup import create_input_handler
+import time
+from typing import Dict, Optional
 
 def main():
     # Initialize game systems
     display = Display(GameConstants.WINDOW_WIDTH, GameConstants.WINDOW_HEIGHT)
-    input_handler = InputHandler()
     logger = Logger()
     
     # Use initializer to set up game state, player, and config_loader
     game_state, player, config_loader = initialize_game()
     
     # Register input handlers
-    def handle_move(dx: int, dy: int):
-        new_x = player.x + dx
-        new_y = player.y + dy
-        if game_state.move_entity(player, new_x, new_y):
-            player.status.turn += 1
-            logger.add_message(f"Moved to ({new_x}, {new_y})", turn=player.status.turn)
-            
-    input_handler.register_handler('move_up', lambda _: handle_move(0, -1))
-    input_handler.register_handler('move_down', lambda _: handle_move(0, 1))
-    input_handler.register_handler('move_left', lambda _: handle_move(-1, 0))
-    input_handler.register_handler('move_right', lambda _: handle_move(1, 0))
-    input_handler.register_handler('move_up_left', lambda _: handle_move(-1, -1))
-    input_handler.register_handler('move_up_right', lambda _: handle_move(1, -1))
-    input_handler.register_handler('move_down_left', lambda _: handle_move(-1, 1))
-    input_handler.register_handler('move_down_right', lambda _: handle_move(1, 1))
+    input_handler = create_input_handler(game_state, player, logger)
     
     # Main game loop
     running = True

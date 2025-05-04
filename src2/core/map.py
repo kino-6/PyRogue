@@ -129,8 +129,6 @@ class GameMap:
             for x in range(room["x1"] + 1, room["x2"] - 1):
                 self.tiles[y, x] = self.WALL_FLOOR
 
-        self.print_map()
-
     def get_room_center(self, room):
         return (
             (room["x1"] + room["x2"]) // 2,
