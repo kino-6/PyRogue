@@ -98,7 +98,7 @@ class Character(Entity):
             self.status.current_hp = self.status.max_hp
 
     def update_turn(self):
-        self.turn += 1
+        # ターン数の更新はGameクラスで行うため、ここでは行わない
         self.update_nutrition()
         self.natural_recovery()
         self.update_on_turn()
@@ -127,6 +127,7 @@ class Character(Entity):
     def add_logger(self, msg: str):
         if self.logger:
             self.logger.info(msg)
+        print(msg)  # 標準出力にも表示
 
     def pick_up_item_at_feet(self, game):
         item = game.get_item_at_position(self.x, self.y)
@@ -233,8 +234,8 @@ class Character(Entity):
 
     def update_on_turn(self):
         """キャラクターのターン開始時の処理"""
-        # 全てのエフェクトのon_turnを実行
-        for effect in self.effects:
+        # エフェクトのリストをコピーしてから処理を行う
+        for effect in list(self.effects):
             effect.on_turn(self)
 
     def add_effect(self, effect):

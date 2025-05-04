@@ -21,7 +21,22 @@ class Enemy(Character):
         self.chase_turns = 0
 
     def update(self, game: Game):
-        if not self.can_act:  # 行動不能状態の場合は何もしない
+        player = game.get_player()
+        if not player:
+            return None
+
+        # プレイヤーが睡眠状態の場合は、敵の行動不能状態に関係なく攻撃可能
+        if not player.can_act:
+            # プレイヤーが見えるかどうかに関係なく攻撃を試みる
+            self.behavior = ChasePlayerBehavior()
+            action = self.behavior.determine_action(self, game)
+            if action:
+                return action
+            # 攻撃できない場合は、プレイヤーに向かって移動を試みる
+            return self.behavior.determine_action(self, game)
+
+        # 通常の行動処理
+        if not self.can_act:
             return None
 
         if self.can_see_player(game):
@@ -44,12 +59,16 @@ class Enemy(Character):
         
         if did_hit:
             is_killed = target.take_damage(damage)
-            game.logger.info(f"{self.status.name} attacks {target.status.name} for {damage} damage.")
+            message = f"{self.status.name} attacks {target.status.name} for {damage} damage."
+            game.logger.info(message)
+            target.add_logger(message)
             
             if is_killed:
                 target.die(game)
         else:
-            game.logger.info(f"{self.status.name} missed {target.status.name}!")
+            message = f"{self.status.name} missed {target.status.name}!"
+            game.logger.info(message)
+            target.add_logger(message)
 
     def _roll_attack(self, target):
         """攻撃の成功判定とダメージ計算"""
@@ -199,12 +218,15 @@ class EnemyManager:
             self.add_enemy(game, current_level)
 
     def update_enemies(self, game: Game):
-        for entities in list(game.entity_positions.values()):
-            for entity in list(entities):
-                if isinstance(entity, Enemy):
-                    action = entity.update(game)  # Enemy の行動を決定
-                    if action:
-                        game.apply_enemy_action(entity, action)  # Game クラスに行動を適用させる
+        # まず全ての敵を取得
+        enemies = [entity for entities in game.entity_positions.values() 
+                  for entity in entities if isinstance(entity, Enemy)]
+        
+        # 各敵の行動を処理
+        for enemy in enemies:
+            action = enemy.update(game)  # Enemy の行動を決定
+            if action:
+                game.apply_enemy_action(enemy, action)  # Game クラスに行動を適用させる
 
 
 class EnemyBehavior:
@@ -228,6 +250,11 @@ class ChasePlayerBehavior(EnemyBehavior):
         
         # 攻撃範囲内（隣接8マス）にいる場合は攻撃
         if dx <= enemy.attack_range and dy <= enemy.attack_range:
+            # プレイヤーが睡眠状態の場合は、より積極的に攻撃する
+            if not player.can_act:
+                message = f"{enemy.status.name} sees you are asleep and attacks!"
+                game.logger.info(message)
+                player.add_logger(message)
             return {"type": "attack", "target": player}
             
         # 攻撃範囲外の場合は追跡

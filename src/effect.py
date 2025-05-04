@@ -206,6 +206,10 @@ class SleepEffect(SpecialEffect):
 
     def apply_effect(self, character):
         """睡眠エフェクトを適用"""
+        # 既に睡眠状態の場合は適用しない
+        if not character.can_act:
+            return
+            
         super().apply_effect(character)
         character.add_effect(self)
         character.add_logger("You feel drowsy...")

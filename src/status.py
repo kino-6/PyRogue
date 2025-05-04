@@ -18,6 +18,8 @@ class Status:
         self.gold = data.get("gold", 0)
         self.food_left = data.get("food_left", const.STOMACHSIZE)
         self.based_hit_rate = data.get("based_hit_rate", const.BASED_HIT_RATE)
+
+        self.turn_count = 0
         
         # ダイス情報の追加
         self.dice_sides = data.get("dice_sides", 4)  # デフォルトは4面ダイス
@@ -36,7 +38,7 @@ class Status:
         """generate main UI status txt list"""
         status_txt = [
             f"Name: {self.name}, ({x}, {y})",
-            f"Floor: {self.level}",
+            f"Floor: {self.level}, {self.turn_count} turns",
             f"Gold: {self.gold}",
             f"Hp: {self.current_hp}/{self.max_hp}",
             f"Str: {self.strength}",

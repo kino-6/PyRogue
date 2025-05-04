@@ -435,6 +435,19 @@ class Game:
         self.renew_logger_window("all item identified")
 
     def update_turn(self):
+        player = self.get_player()
+        if player:
+            # ターン数を更新
+            player.status.turn_count += 1
+            
+            # ターンの区切りを表示
+            separator = "=" * 40
+            self.logger.info(separator)
+            player.add_logger(separator)
+            self.logger.info(f"Turn {player.status.turn_count}")
+            player.add_logger(f"Turn {player.status.turn_count}")
+            self.logger.info(separator)
+            player.add_logger(separator)
         self.respawn_enemy()
 
     def mark_initial_visibility(self):
